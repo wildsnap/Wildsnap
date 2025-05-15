@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import hello_world
+from .views import predict_image
 
 urlpatterns = [
-    path('hello/', hello_world),
+    path('predict/', predict_image, name='predict_image'),
 ]
