@@ -1,117 +1,135 @@
-# WildSnap
+# Turborepo starter
 
-This project is a full-stack AI web application for weight classification. It consists of:
+This Turborepo starter is maintained by the Turborepo core team.
 
-- **Backend**: Django REST Framework with a pre-trained `MobileNetV2` model.
-- **Frontend**: Next.js app that communicates with the API.
-- **ML Model**: `MobileNetV2.h5` used to classify input data.
+## Using this example
 
+Run the following command:
 
-
-## Project Structure
-
+```sh
+npx create-turbo@latest
 ```
 
-project-root/
-├── backend/               # Django REST API
-│   ├── api/               # Main API app
-│   ├── backend/           # Django core settings
-│   └── models/
-│       └── MobileNetV2.h5 # ML model file
-├── frontend/              # Next.js frontend app
-│   ├── app/
-│   └── ...
+## What's inside?
 
-````
+This Turborepo includes the following packages/apps:
 
+### Apps and Packages
 
-## Prerequisites
+- `docs`: a [Next.js](https://nextjs.org/) app
+- `web`: another [Next.js](https://nextjs.org/) app
+- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
+- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
+- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
 
-- Python 3.9+
-- Node.js 18+
-- pip / virtualenv
+Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 
+### Utilities
 
-## Backend Setup (Django REST API)
+This Turborepo has some additional tools already setup for you:
 
-1. Navigate to the backend folder:
+- [TypeScript](https://www.typescriptlang.org/) for static type checking
+- [ESLint](https://eslint.org/) for code linting
+- [Prettier](https://prettier.io) for code formatting
 
-```bash
-cd backend
-````
+### Build
 
-2. Create and activate a virtual environment (optional but recommended):
+To build all apps and packages, run the following command:
 
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+cd my-turborepo
+
+# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
+turbo build
+
+# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
+npx turbo build
+yarn dlx turbo build
+pnpm exec turbo build
 ```
 
-3. Install Python dependencies:
+You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
 
-```bash
-pip install -r requirements.txt
+```
+# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
+turbo build --filter=docs
+
+# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
+npx turbo build --filter=docs
+yarn exec turbo build --filter=docs
+pnpm exec turbo build --filter=docs
 ```
 
-4. Environment Setting
+### Develop
 
-backend/`.env`
+To develop all apps and packages, run the following command:
+
 ```
-CORS_ALLOWED_ORIGINS="http://localhost:3000"
-```
+cd my-turborepo
 
-5. Run migrations:
+# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
+turbo dev
 
-```bash
-python manage.py migrate
-```
-
-6. Start the Django development server:
-
-```bash
-python manage.py runserver
+# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
+npx turbo dev
+yarn exec turbo dev
+pnpm exec turbo dev
 ```
 
-API will be available at:
-**[http://127.0.0.1:8000/](http://127.0.0.1:8000/)**
+You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
 
+```
+# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
+turbo dev --filter=web
 
-
-
-## Frontend Setup (Next.js)
-
-1. Open a new terminal and navigate to the frontend directory:
-
-```bash
-cd frontend
+# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
+npx turbo dev --filter=web
+yarn exec turbo dev --filter=web
+pnpm exec turbo dev --filter=web
 ```
 
-2. Install dependencies:
+### Remote Caching
 
-```bash
-npm install
+> [!TIP]
+> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+
+Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+
+By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+
+```
+cd my-turborepo
+
+# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
+turbo login
+
+# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
+npx turbo login
+yarn exec turbo login
+pnpm exec turbo login
 ```
 
-3. Run the Next.js development server:
+This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
 
-```bash
-npm run dev
+Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+
+```
+# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
+turbo link
+
+# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
+npx turbo link
+yarn exec turbo link
+pnpm exec turbo link
 ```
 
-Frontend will be available at:
-**[http://localhost:3000/](http://localhost:3000/)**
+## Useful Links
 
+Learn more about the power of Turborepo:
 
-
-## ML Model Info
-
-* The ML model `MobileNetV2.h5` is stored in `backend/models/`
-* It is loaded in the Django `views.py` to perform predictions.
-* Make sure this file is present before starting the backend server.
-
-
-## Deployment Tips
-
-* Use `.env` files for environment-specific configuration.
-* Set `DEBUG=False` and use a production-ready server (e.g., Gunicorn, Nginx) for Django.
-
+- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
+- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
+- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
+- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
+- [Configuration Options](https://turborepo.com/docs/reference/configuration)
+- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
