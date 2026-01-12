@@ -46,7 +46,14 @@ export default function App() {
 
   const handleCapture = () => {
     // Simulate AI detection - randomly select an animal
+    if (!animals.length) {
+      toast.error('No animals available to detect.');
+      return;
+    }
+
     const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
+    if (!randomAnimal) return;
+
     setSelectedAnimal(randomAnimal);
     setShowCamera(false);
     setShowResult(true);
@@ -109,7 +116,7 @@ export default function App() {
       {/* Main Screens */}
       {!showCamera && !showResult && (
         <>
-          {currentScreen === 'home' && (
+          {currentScreen === 'home' && featuredAnimal && (
             <HomeScreen
               discoveredCount={discoveredAnimals.length}
               totalCount={totalAnimals}
