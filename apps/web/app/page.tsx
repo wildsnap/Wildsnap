@@ -1,102 +1,174 @@
-import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/button";
-import styles from "./page.module.css";
+"use client";
 
-type Props = Omit<ImageProps, "src"> & {
-  srcLight: string;
-  srcDark: string;
-};
+import { useState } from 'react';
+import { HomeScreen } from "../../components/HomeScreen";
+import { CameraScreen } from '../../components/CameraScreen';
+import { ResultScreen } from '../../components/ResultScreen';
+import { CollectionScreen } from '../../components/CollectionScreen';
+import { ShopScreen } from '../../components/ShopScreen';
+import { ProfileScreen } from '../../components/ProfileScreen';
+import { BottomNav } from '../../components/BottomNav';
+import { ANIMALS, SHOP_ITEMS, ACHIEVEMENTS, Animal, ShopItem } from '../../data/mockData';
+import { toast, Toaster } from 'sonner';
 
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
+export default function App() {
+  const [currentScreen, setCurrentScreen] = useState('home');
+  const [showCamera, setShowCamera] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+  const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
+  const [animals, setAnimals] = useState(ANIMALS);
+  const [userLevel, setUserLevel] = useState(5);
+  const [userXP, setUserXP] = useState(250);
+  const [coins, setCoins] = useState(450);
+
+  const discoveredAnimals = animals.filter((a) => a.discovered);
+  const totalAnimals = animals.length;
+  const featuredAnimal = discoveredAnimals[0] || animals[0];
+  const rareCount = discoveredAnimals.filter(
+    (a) => a.rarity === 'rare' || a.rarity === 'legendary'
+  ).length;
+
+  const handleNavigate = (screen: string) => {
+    setCurrentScreen(screen);
+    if (screen === 'camera') {
+      setShowCamera(true);
+    }
+  };
+
+  const handleScanClick = () => {
+    setShowCamera(true);
+  };
+
+  const handleCameraClose = () => {
+    setShowCamera(false);
+    setCurrentScreen('home');
+  };
+
+  const handleCapture = () => {
+    // Simulate AI detection - randomly select an animal
+    const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
+    setSelectedAnimal(randomAnimal);
+    setShowCamera(false);
+    setShowResult(true);
+  };
+
+  const handleResultClose = () => {
+    setShowResult(false);
+    setSelectedAnimal(null);
+    setCurrentScreen('home');
+  };
+
+  const handleAddToCollection = () => {
+    if (selectedAnimal && !selectedAnimal.discovered) {
+      // Mark animal as discovered
+      setAnimals((prev) =>
+        prev.map((a) =>
+          a.id === selectedAnimal.id ? { ...a, discovered: true } : a
+        )
+      );
+
+      // Add XP and coins
+      setUserXP((prev) => {
+        const newXP = prev + 50;
+        if (newXP >= (userLevel + 1) * 100) {
+          setUserLevel((lvl) => lvl + 1);
+          toast.success(`Level Up! You are now level ${userLevel + 1}! 🎉`);
+        }
+        return newXP;
+      });
+      setCoins((prev) => prev + 25);
+
+      toast.success(`${selectedAnimal.name} added to collection! +50 XP, +25 coins`);
+    }
+
+    setTimeout(() => {
+      setShowResult(false);
+      setSelectedAnimal(null);
+      setCurrentScreen('collection');
+    }, 500);
+  };
+
+  const handleAnimalClick = (animal: Animal) => {
+    setSelectedAnimal(animal);
+    setShowResult(true);
+  };
+
+  const handlePurchase = (item: ShopItem) => {
+    if (coins >= item.price) {
+      setCoins((prev) => prev - item.price);
+      toast.success(`Purchased ${item.name}! 🎉`);
+    } else {
+      toast.error('Not enough coins!');
+    }
+  };
 
   return (
-    <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
-    </>
-  );
-};
-
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+    <div className="relative max-w-md mx-auto bg-white min-h-screen overflow-hidden">
+      <Toaster position="top-center" />
+      
+      {/* Main Screens */}
+      {!showCamera && !showResult && (
+        <>
+          {currentScreen === 'home' && (
+            <HomeScreen
+              discoveredCount={discoveredAnimals.length}
+              totalCount={totalAnimals}
+              featuredAnimal={featuredAnimal}
+              onScanClick={handleScanClick}
+              onFeaturedClick={() => handleAnimalClick(featuredAnimal)}
+              userLevel={userLevel}
+              userXP={userXP}
+              coins={coins}
             />
-            Deploy now
-          </a>
-          <a
-            href="https://turborepo.com/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
-        </Button>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
+          )}
+
+          {currentScreen === 'collection' && (
+            <CollectionScreen
+              animals={animals}
+              onAnimalClick={handleAnimalClick}
+            />
+          )}
+
+          {currentScreen === 'shop' && (
+            <ShopScreen
+              items={SHOP_ITEMS}
+              coins={coins}
+              onPurchase={handlePurchase}
+            />
+          )}
+
+          {currentScreen === 'profile' && (
+            <ProfileScreen
+              userLevel={userLevel}
+              userXP={userXP}
+              discoveredCount={discoveredAnimals.length}
+              rareCount={rareCount}
+              achievements={ACHIEVEMENTS}
+            />
+          )}
+
+          {/* Bottom Navigation */}
+          <BottomNav
+            currentScreen={currentScreen}
+            onNavigate={handleNavigate}
           />
-          Examples
-        </a>
-        <a
-          href="https://turborepo.com?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turborepo.com →
-        </a>
-      </footer>
+        </>
+      )}
+
+      {/* Camera Overlay */}
+      {showCamera && (
+        <CameraScreen onClose={handleCameraClose} onCapture={handleCapture} />
+      )}
+
+      {/* Result Overlay */}
+      {showResult && selectedAnimal && (
+        <ResultScreen
+          animal={selectedAnimal}
+          isNewDiscovery={!selectedAnimal.discovered}
+          onClose={handleResultClose}
+          onAddToCollection={handleAddToCollection}
+        />
+      )}
     </div>
   );
 }
