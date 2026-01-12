@@ -32,7 +32,7 @@ export function HomeScreen({
       <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-b-3xl shadow-lg">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h1 className="text-2xl mb-1">Animal Quest</h1>
+            <h1 className="text-2xl mb-10">Animal Quest</h1>
             <p className="text-green-100 text-sm">Level {userLevel} Explorer</p>
           </div>
           <div className="bg-yellow-400 text-green-900 px-4 py-2 rounded-full flex items-center gap-1">
