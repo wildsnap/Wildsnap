@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 
 interface CameraScreenProps {
   onClose: () => void;
+  onCapture: (aiData: { label: string; confidence: number }) => void;
 }
 
 export function CameraScreen({ onClose }: CameraScreenProps) {
