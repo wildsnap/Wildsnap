@@ -216,9 +216,9 @@ function Frame5() {
 function Frame6() {
   return (
     <div className="absolute h-[107px] left-[45px] top-[276px] w-[116px]">
-      <img alt="" className="absolute inset-0 max-w-none object-contain pointer-events-none size-full" src={imgFrame121075677} />
+      {/* <img alt="" className="absolute inset-0 max-w-none object-contain pointer-events-none size-full" src={imgFrame121075677} /> */}
       <div className="absolute left-[16px] size-[46px] top-[48px]" data-name="Rectangle">
-        <img alt="" className="absolute inset-0 max-w-none object-contain pointer-events-none size-full" src={imgRectangle} />
+        {/* <img alt="" className="absolute inset-0 max-w-none object-contain pointer-events-none size-full" src={imgRectangle} /> */}
       </div>
     </div>
   );

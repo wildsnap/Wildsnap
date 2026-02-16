@@ -479,7 +479,7 @@ export default function User() {
   return (
     <div className="bg-white relative size-full" data-name="User">
       <div className="absolute h-[869px] left-[-584px] top-[-41px] w-[1304px]" data-name="8-bit-graphics-pixels-scene-with-forest 1">
-        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={img8BitGraphicsPixelsSceneWithForest1} />
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={img8BitGraphicsPixelsSceneWithForest.src as string} />
       </div>
       <div className="-translate-x-1/2 absolute bg-white h-[568px] left-[calc(50%-0.5px)] top-[208px] w-[329px]" />
       <StatusBar />
