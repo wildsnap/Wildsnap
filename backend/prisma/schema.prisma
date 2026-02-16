@@ -1,0 +1,219 @@
+// ============================================
+// Configurations
+// ============================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  moduleFormat    = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// 1. User Management & Profile
+// ============================================
+
+model User {
+  id                  Int      @id @default(autoincrement())
+  username            String   @unique
+  email               String?  @unique
+  password            String?
+  
+  currentPoints       Int      @default(0) // แต้มปัจจุบันที่ใช้แลกของได้
+  totalPointsEarned   Int      @default(0) // แต้มรวมทั้งหมดที่เคยได้ (สำหรับ Leaderboard)
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  collections         UserCollection[]
+  scanLogs            ScanLog[]
+  missions            UserMission[]
+  achievements        UserAchievement[]
+  inventory           UserInventory[]
+}
+
+// ============================================
+// 2. Animal Encyclopedia
+// ============================================
+
+model Animal {
+  id               Int      @id @default(autoincrement())
+  name             String   // ชื่อสัตว์
+  scientificName   String?
+  description      String?  @db.Text
+  funFact          String?  @db.Text // Educational Fact Cards
+  habitat          String?
+  rarityLevel      Rarity   @default(COMMON)
+
+  imageUrl         String?  // รูปจริงเมื่อปลดล็อก
+  shadowImageUrl   String?  // รูปเงาเมื่อยังไม่เจอ
+
+  pointsReward     Int      @default(0) // แต้มเมื่อเจอสัตว์
+
+  // Relations
+  collectedBy      UserCollection[]
+  scanLogs         ScanLog[]
+  missions         Mission[]
+}
+
+enum Rarity {
+  COMMON
+  UNCOMMON
+  RARE
+  LEGENDARY
+}
+
+// ============================================
+// 3. Stories / Narrative Content
+// ============================================
+
+model Story {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  // Relations
+  missions    Mission[]
+}
+
+// ============================================
+// 4. User Collection (User ↔ Animal)
+// ============================================
+
+model UserCollection {
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  animalId         Int
+  capturedAt       DateTime @default(now())
+  isFirstDiscovery Boolean  @default(true)
+  customName       String?  // ตั้งชื่อเล่นสัตว์
+
+  user             User     @relation(fields: [userId], references: [id])
+  animal           Animal   @relation(fields: [animalId], references: [id])
+
+  @@unique([userId, animalId]) // Prevents duplicate entries for the same animal
+}
+
+// ============================================
+// 5. AI Recognition Logs
+// ============================================
+
+model ScanLog {
+  id                Int      @id @default(autoincrement())
+  userId            Int
+  imageUrl          String?
+  status            String   // Success, Failed, Pending
+  predictedAnimalId Int?
+  confidenceScore   Float?   // Threshold > 90%
+  createdAt         DateTime @default(now())
+
+  user              User     @relation(fields: [userId], references: [id])
+  animal            Animal?  @relation(fields: [predictedAnimalId], references: [id])
+}
+
+// ============================================
+// 6. Missions System
+// ============================================
+
+model Mission {
+  id            Int         @id @default(autoincrement())
+  title         String
+  description   String?     @db.Text
+  missionType   MissionType
+  
+  animalId      Int?
+  storyId       Int?
+  
+  targetValue   Int         @default(1)
+  rewardPoints  Int         @default(0)
+  createdAt     DateTime    @default(now())
+
+  // Relations
+  animal        Animal?     @relation(fields: [animalId], references: [id])
+  story         Story?      @relation(fields: [storyId], references: [id])
+  userMissions  UserMission[]
+}
+
+enum MissionType {
+  SCAN_ANIMAL
+  COLLECT_ANIMAL
+  READ_STORY
+  FOLLOW_STORY
+}
+
+model UserMission {
+  id              Int       @id @default(autoincrement())
+  userId          Int
+  missionId       Int
+  currentProgress Int       @default(0)
+  isCompleted     Boolean   @default(false)
+  completedAt     DateTime?
+
+  user            User      @relation(fields: [userId], references: [id])
+  mission         Mission   @relation(fields: [missionId], references: [id])
+}
+
+// ============================================
+// 7. Achievements System
+// ============================================
+
+model Achievement {
+  id              Int               @id @default(autoincrement())
+  name            String
+  description     String?
+  criteriaType    String            // collect_count, rare_find, specific_animal, story_complete
+  targetValue     Int
+  rewardPoints    Int
+
+  userAchievements UserAchievement[]
+}
+
+model UserAchievement {
+  id              Int         @id @default(autoincrement())
+  userId          Int
+  achievementId   Int
+  currentProgress Int         @default(0)
+  isCompleted     Boolean     @default(false)
+  completedAt     DateTime?
+
+  user            User        @relation(fields: [userId], references: [id])
+  achievement     Achievement @relation(fields: [achievementId], references: [id])
+}
+
+// ============================================
+// 8. Shop, Avatar & Items
+// ============================================
+
+model Item {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?   @db.Text
+  price       Int       // ราคาเป็นแต้ม
+  type        ItemType
+  imageUrl    String?
+
+  inventory   UserInventory[]
+}
+
+enum ItemType {
+  AVATAR_OUTFIT
+  AVATAR_ACCESSORY
+  ANIMAL_DECORATION
+  REAL_WORLD_COUPON
+}
+
+model UserInventory {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  itemId      Int
+  purchasedAt DateTime @default(now())
+  isEquipped  Boolean  @default(false)
+
+  user        User     @relation(fields: [userId], references: [id])
+  item        Item     @relation(fields: [itemId], references: [id])
+}
