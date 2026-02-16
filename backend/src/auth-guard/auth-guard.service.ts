@@ -20,7 +20,7 @@ export class AuthGuardService implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>();
 
     // Check for session cookie
-    const sessionToken = request.cookies.__session;
+    const sessionToken = request.cookies?.__session;
 
     // Check for bearer token
     const authHeader = request.headers.authorization;
