@@ -4,12 +4,24 @@ import cookieParser from 'cookie-parser';
 import 'dotenv/config';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 const server = express();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
-  
+
+  const config = new DocumentBuilder()
+    .setTitle('Wildsnap API')
+    .setDescription('The Wildsnap API description')
+    .setVersion('1.0')
+    .addTag('Wildsnap')
+    .build();
+  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('swagger', app, documentFactory, {
+    jsonDocumentUrl: 'swagger/json',
+  });
+
   app.enableCors({
     origin: process.env.FRONTEND_URL ?? 'http://localhost:3100',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
@@ -17,13 +29,14 @@ async function bootstrap() {
   });
   
   app.use(cookieParser());
-  
+
   if (process.env.NODE_ENV !== 'production') {
     await app.listen(process.env.PORT ?? 3100);
   } else {
     await app.init();
   }
 }
+
 
 bootstrap();
 
