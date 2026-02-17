@@ -7,13 +7,13 @@ import { ScanScreen } from "./components/scan-screen";
 import { RewardModal } from "./components/reward-modal";
 import { AvatarScreen } from "./components/avatar-screen";
 import { ShopScreen } from "./components/shop-screen";
-// import { UserButton } from "@clerk/nextjs"; // ถ้าอยากเอาปุ่ม Logout มาไว้ในหน้า App
 
-// สร้าง Interface สำหรับข้อมูลที่จะรับจาก API
+// --- จุดที่ 1: เพิ่ม imageUrl เข้าไปใน Interface ---
 interface AnimalData {
   name: string;
   confidence: number;
-  funFact?: string; // ถ้า API ส่งเกร็ดความรู้มาด้วย
+  funFact?: string;
+  imageUrl?: string; // <--- เพิ่มบรรทัดนี้ครับ (ใส่ ? เพื่อบอกว่าอาจจะไม่มีก็ได้)
 }
 
 export default function Home() {
@@ -33,13 +33,18 @@ export default function Home() {
     setShowScanScreen(true);
   };
 
-  // รับ data จาก ScanScreen (API Response)
+  // รับ data จาก ScanScreen
   const handleAnimalDetected = (data: any) => {
-    // 1. แปลงข้อมูลจาก API ให้เข้ากับ Interface ของเรา
+    // --- จุดที่ 2: แมพข้อมูล imageUrl มาเก็บด้วย ---
     const detectedAnimal: AnimalData = {
-      name: data.class_name || "Unknown Animal",
+      // เช็คทั้ง name (จาก mock) และ class_name (เผื่อต่อ api ในอนาคต)
+      name: data.name || data.class_name || "Unknown Animal",
       confidence: data.confidence || 0,
-      funFact: data.fun_fact || `Did you know? ${data.class_name} is amazing!`, // Mock ถ้า API ไม่มี
+      funFact:
+        data.funFact ||
+        data.fun_fact ||
+        `Did you know? ${data.class_name} is amazing!`,
+      imageUrl: data.imageUrl, // <--- เพิ่มบรรทัดนี้เพื่อรับรูปภาพจาก ScanScreen
     };
 
     // 2. เก็บลง State
@@ -62,8 +67,6 @@ export default function Home() {
   };
 
   return (
-    // เพิ่ม pt-16 หรือ height calculation เพื่อหลบ Header ของ Clerk ใน layout.tsx
-    // หรือใช้ h-[calc(100vh-64px)] ถ้า Header สูง 64px
     <div className="relative w-full h-[calc(100vh-64px)] max-w-md mx-auto bg-[#F5F8F0] overflow-hidden font-['Nunito']">
       {/* Main Content */}
       <div className="h-full overflow-y-auto pb-20">
@@ -71,7 +74,7 @@ export default function Home() {
           <HomeScreen
             onScanClick={handleScanClick}
             coins={coins}
-            username="Explorer" // คุณอาจจะดึงชื่อจาก Clerk user object ได้ที่นี่
+            username="Explorer"
           />
         )}
         {activeTab === "collection" && (
@@ -97,19 +100,18 @@ export default function Home() {
       {showScanScreen && (
         <ScanScreen
           onClose={() => setShowScanScreen(false)}
-          onAnimalDetected={handleAnimalDetected} // ส่ง function ที่รับ data ได้
+          onAnimalDetected={handleAnimalDetected}
         />
       )}
 
-      {/* Reward Modal - ใช้ข้อมูลจริงจาก currentAnimal */}
+      {/* Reward Modal */}
       <RewardModal
         isOpen={showRewardModal}
         onClose={() => setShowRewardModal(false)}
         animalName={currentAnimal?.name || "Unknown"}
         coinsEarned={50}
-        funFact={
-          currentAnimal?.funFact || "Keep exploring to find more animals!"
-        }
+        funFact={currentAnimal?.funFact || "Great shot!"}
+        capturedImage={currentAnimal?.imageUrl} // <--- เส้นใต้สีแดงจะหายไปแล้วครับ
       />
     </div>
   );
