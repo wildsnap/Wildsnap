@@ -6,10 +6,12 @@ import { UsersModule } from './users/users.module';
 import { AuthGuardModule } from './auth-guard/auth-guard.module';
 import { ClerkModule } from './providers/clerk.module';
 import { ConfigModule } from '@nestjs/config';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
     UsersModule,
+    AiModule,
     AuthGuardModule,
     ClerkModule,
     ConfigModule.forRoot({ isGlobal: true }),
