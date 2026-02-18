@@ -49,107 +49,107 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
   }, []);
 
   // 2. ฟังก์ชันถ่ายรูปและส่ง API
-  // const handleScan = async () => {
-  //   if (!videoRef.current || !canvasRef.current) return;
-
-  //   setIsScanning(true);
-
-  //   try {
-  //     // 2.1 วาดภาพจาก Video ลง Canvas
-  //     const video = videoRef.current;
-  //     const canvas = canvasRef.current;
-  //     canvas.width = video.videoWidth;
-  //     canvas.height = video.videoHeight;
-
-  //     const context = canvas.getContext('2d');
-  //     if (!context) return;
-
-  //     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  //     // 2.2 แปลง Canvas เป็น Blob/File
-  //     canvas.toBlob(async (blob) => {
-  //       if (!blob) {
-  //         setIsScanning(false);
-  //         return;
-  //       }
-
-  //       const file = new File([blob], "captured-animal.jpg", { type: "image/jpeg" });
-  //       const formData = new FormData();
-  //       formData.append('file', file);
-
-  //       try {
-  //         // 2.3 ส่งไปยัง NestJS API
-  //         // TODO: เปลี่ยน URL นี้ให้เป็น IP เครื่องจริง หรือ Domain เมื่อ Deploy
-  //         // ตัวอย่าง: 'https://api.yourdomain.com/ai/predict' หรือ 'http://192.168.1.xxx:3000/ai/predict'
-  //         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-
-  //         const response = await axios.post(`${apiUrl}/ai/predict`, formData, {
-  //           headers: { 'Content-Type': 'multipart/form-data' },
-  //         });
-
-  //         console.log("AI Response:", response.data);
-
-  //         // รอ Animation เล่นให้จบนิดนึงเพื่อความสมูท (Optional)
-  //         setTimeout(() => {
-  //            setIsScanning(false);
-  //            onAnimalDetected(response.data); // ส่งข้อมูลกลับไปหน้า Home
-  //            onClose(); // ปิดหน้า Scan
-  //         }, 500);
-
-  //       } catch (apiError) {
-  //         console.error("API Error:", apiError);
-  //         alert("เกิดข้อผิดพลาดในการวิเคราะห์ภาพ");
-  //         setIsScanning(false);
-  //       }
-  //     }, 'image/jpeg', 0.8); // Quality 0.8
-
-  //   } catch (err) {
-  //     console.error("Capture Error:", err);
-  //     setIsScanning(false);
-  //   }
-  // };
-
   const handleScan = async () => {
     if (!videoRef.current || !canvasRef.current) return;
 
     setIsScanning(true);
 
     try {
+      // 2.1 วาดภาพจาก Video ลง Canvas
       const video = videoRef.current;
       const canvas = canvasRef.current;
-
-      // ตั้งขนาด canvas ให้ตรงกับ video
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
-      const context = canvas.getContext("2d");
+      const context = canvas.getContext('2d');
       if (!context) return;
 
-      // วาดรูปจาก video ลง canvas
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // --- ส่วนที่แก้ไข: แปลงเป็น Data URL แทนการส่ง API ---
-      const capturedImageUrl = canvas.toDataURL("image/jpeg", 0.8);
+      // 2.2 แปลง Canvas เป็น Blob/File
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          setIsScanning(false);
+          return;
+        }
 
-      // จำลองเวลา Scan เหมือนรอ API (เพื่อให้ User รู้สึกว่ามันกำลังวิเคราะห์)
-      setTimeout(() => {
-        setIsScanning(false);
+        const file = new File([blob], "captured-animal.jpg", { type: "image/jpeg" });
+        const formData = new FormData();
+        formData.append('file', file);
 
-        // ส่งข้อมูล Mock กลับไปหน้า Home
-        onAnimalDetected({
-          name: "Mystery Animal", // ชื่อสมมติ
-          confidence: 0.99,
-          funFact: "You found this animal in the wild!",
-          imageUrl: capturedImageUrl, // ส่งรูปที่ถ่ายไปด้วย!
-        });
+        try {
+          // 2.3 ส่งไปยัง NestJS API
+          // TODO: เปลี่ยน URL นี้ให้เป็น IP เครื่องจริง หรือ Domain เมื่อ Deploy
+          // ตัวอย่าง: 'https://api.yourdomain.com/ai/predict' หรือ 'http://192.168.1.xxx:3000/ai/predict'
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3100';
 
-        onClose();
-      }, 1500); // รอ 1.5 วินาที
+          const response = await axios.post(`${apiUrl}/ai/predict`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+
+          console.log("AI Response:", response.data);
+
+          // รอ Animation เล่นให้จบนิดนึงเพื่อความสมูท (Optional)
+          setTimeout(() => {
+             setIsScanning(false);
+             onAnimalDetected(response.data); // ส่งข้อมูลกลับไปหน้า Home
+             onClose(); // ปิดหน้า Scan
+          }, 500);
+
+        } catch (apiError) {
+          console.error("API Error:", apiError);
+          alert("เกิดข้อผิดพลาดในการวิเคราะห์ภาพ");
+          setIsScanning(false);
+        }
+      }, 'image/jpeg', 0.8); // Quality 0.8
+
     } catch (err) {
       console.error("Capture Error:", err);
       setIsScanning(false);
     }
   };
+
+  // const handleScan = async () => {
+  //   if (!videoRef.current || !canvasRef.current) return;
+
+  //   setIsScanning(true);
+
+  //   try {
+  //     const video = videoRef.current;
+  //     const canvas = canvasRef.current;
+
+  //     // ตั้งขนาด canvas ให้ตรงกับ video
+  //     canvas.width = video.videoWidth;
+  //     canvas.height = video.videoHeight;
+
+  //     const context = canvas.getContext("2d");
+  //     if (!context) return;
+
+  //     // วาดรูปจาก video ลง canvas
+  //     context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  //     // --- ส่วนที่แก้ไข: แปลงเป็น Data URL แทนการส่ง API ---
+  //     const capturedImageUrl = canvas.toDataURL("image/jpeg", 0.8);
+
+  //     // จำลองเวลา Scan เหมือนรอ API (เพื่อให้ User รู้สึกว่ามันกำลังวิเคราะห์)
+  //     setTimeout(() => {
+  //       setIsScanning(false);
+
+  //       // ส่งข้อมูล Mock กลับไปหน้า Home
+  //       onAnimalDetected({
+  //         name: "Mystery Animal", // ชื่อสมมติ
+  //         confidence: 0.99,
+  //         funFact: "You found this animal in the wild!",
+  //         imageUrl: capturedImageUrl, // ส่งรูปที่ถ่ายไปด้วย!
+  //       });
+
+  //       onClose();
+  //     }, 1500); // รอ 1.5 วินาที
+  //   } catch (err) {
+  //     console.error("Capture Error:", err);
+  //     setIsScanning(false);
+  //   }
+  // };
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
