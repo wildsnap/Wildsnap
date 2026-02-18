@@ -8,8 +8,8 @@ interface RewardModalProps {
   scientificName?: string;
   description?: string;
   habitat?: string;
-  diet?: "herbivore" | "carnivore" | "omnivore";
-  rarityLevel?: "Common" | "Rare" | "Epic" | "Legendary";
+  diet?: string;
+  rarityLevel?: string;
   coinsEarned: number;
   funFact: string;
   capturedImage?: string;
@@ -20,10 +20,10 @@ export function RewardModal({
   isOpen,
   onClose,
   animalName,
-  scientificName = "Animalia species",
-  description = "A fascinating creature found in the wild!",
-  habitat = "Forest",
-  diet = "omnivore",
+  scientificName,
+  description,
+  habitat,
+  diet = "unknown",
   rarityLevel = "Common",
   coinsEarned,
   funFact,
@@ -32,28 +32,93 @@ export function RewardModal({
 }: RewardModalProps) {
   if (!isOpen) return null;
 
-  const rarityColors = {
-    Common: { gradient: "from-[#9E9E9E] to-[#757575]", text: "text-[#757575]" },
-    Rare: { gradient: "from-[#4CAF50] to-[#388E3C]", text: "text-[#4CAF50]" },
-    Epic: { gradient: "from-[#9C27B0] to-[#7B1FA2]", text: "text-[#9C27B0]" },
-    Legendary: {
-      gradient: "from-[#FF9800] to-[#F57C00]",
-      text: "text-[#FF9800]",
-    },
+  const getRarityConfig = (level: string) => {
+    // แปลงเป็นตัวพิมพ์ใหญ่ให้หมด จะได้เทียบง่ายๆ
+    const normalized = (level || "Common").toUpperCase();
+
+    // Mapping ค่าสีตามระดับความหายาก
+    const configs: Record<
+      string,
+      { gradient: string; text: string; stars: number }
+    > = {
+      COMMON: {
+        gradient: "from-[#9E9E9E] to-[#757575]",
+        text: "text-[#757575]",
+        stars: 1,
+      },
+
+      // Map ทั้ง UNCOMMON และ RARE เข้ากลุ่มสีเขียว (หรือจะแยกก็ได้)
+      UNCOMMON: {
+        gradient: "from-[#4CAF50] to-[#388E3C]",
+        text: "text-[#4CAF50]",
+        stars: 2,
+      },
+      RARE: {
+        gradient: "from-[#4CAF50] to-[#388E3C]",
+        text: "text-[#4CAF50]",
+        stars: 2,
+      },
+
+      EPIC: {
+        gradient: "from-[#9C27B0] to-[#7B1FA2]",
+        text: "text-[#9C27B0]",
+        stars: 3,
+      },
+      LEGENDARY: {
+        gradient: "from-[#FF9800] to-[#F57C00]",
+        text: "text-[#FF9800]",
+        stars: 4,
+      },
+    };
+
+    // ถ้าหาไม่เจอ ให้ใช้ COMMON เป็นค่าเริ่มต้น (กันพัง)
+    return configs[normalized] || configs.COMMON;
   };
 
-  const rarityStars = {
-    Common: 1,
-    Rare: 2,
-    Epic: 3,
-    Legendary: 4,
+  const rarityConfig = getRarityConfig(rarityLevel);
+
+  const getDietConfig = (dietType: string) => {
+    // แปลงเป็นตัวพิมพ์เล็กให้หมด
+    const normalized = (dietType || "unknown").toLowerCase();
+
+    const configs: Record<
+      string,
+      { icon: string; emoji: string; label: string }
+    > = {
+      herbivore: { icon: "🌿", emoji: "🥬", label: "Herbivore" },
+      carnivore: { icon: "🥩", emoji: "🍖", label: "Carnivore" },
+      omnivore: { icon: "🍽️", emoji: "🍴", label: "Omnivore" },
+      unknown: { icon: "❓", emoji: "❓", label: "Unknown" },
+    };
+
+    return configs[normalized] || configs.unknown;
   };
 
-  const dietInfo = {
-    herbivore: { icon: "🌿", emoji: "🥬", label: "Herbivore" },
-    carnivore: { icon: "🥩", emoji: "🍖", label: "Carnivore" },
-    omnivore: { icon: "🍽️", emoji: "🍴", label: "Omnivore" },
-  };
+  const dietConfig = getDietConfig(diet);
+
+  // const rarityColors = {
+  //   Common: { gradient: "from-[#9E9E9E] to-[#757575]", text: "text-[#757575]" },
+  //   Rare: { gradient: "from-[#4CAF50] to-[#388E3C]", text: "text-[#4CAF50]" },
+  //   Epic: { gradient: "from-[#9C27B0] to-[#7B1FA2]", text: "text-[#9C27B0]" },
+  //   Legendary: {
+  //     gradient: "from-[#FF9800] to-[#F57C00]",
+  //     text: "text-[#FF9800]",
+  //   },
+  // };
+
+  // const rarityStars = {
+  //   Common: 1,
+  //   Rare: 2,
+  //   Epic: 3,
+  //   Legendary: 4,
+  // };
+
+  // const dietInfo = {
+  //   herbivore: { icon: "🌿", emoji: "🥬", label: "Herbivore" },
+  //   carnivore: { icon: "🥩", emoji: "🍖", label: "Carnivore" },
+  //   omnivore: { icon: "🍽️", emoji: "🍴", label: "Omnivore" },
+  //   unknown: { icon: "❓", emoji: "❓", label: "Unknown" },
+  // };
 
   const renderAnimalPixelArt = () => {
     return (
@@ -69,6 +134,8 @@ export function RewardModal({
       </svg>
     );
   };
+
+  // const currentDiet = dietInfo[diet] || dietInfo["unknown"];
 
   return (
     // [แก้ไข 1] เปลี่ยนจาก fixed flex items-center เป็น fixed overflow-y-auto
@@ -240,20 +307,20 @@ export function RewardModal({
                 {/* Diet */}
                 <div className="bg-gradient-to-br from-[#FFF9E6] to-[#FFE4B5] border-3 border-[#2C2C2C] rounded-xl p-3 shadow-[4px_4px_0_0_rgba(0,0,0,0.2)]">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-base">{dietInfo[diet].icon}</span>
+                    <span className="text-base">{dietConfig.icon}</span>
                     <span className="font-['Nunito'] text-xs font-bold text-[#2C2C2C]">
                       Diet
                     </span>
                   </div>
                   <p className="font-['Nunito'] text-sm text-[#2C2C2C] font-bold">
-                    {dietInfo[diet].label}
+                    {dietConfig.label}
                   </p>
                 </div>
               </div>
 
               {/* Rarity Badge */}
               <div
-                className={`bg-gradient-to-r ${rarityColors[rarityLevel].gradient} border-3 border-[#2C2C2C] rounded-xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.2)]`}
+                className={`bg-gradient-to-r ${rarityConfig.gradient} border-3 border-[#2C2C2C] rounded-xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.2)]`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -267,16 +334,14 @@ export function RewardModal({
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {Array.from({ length: rarityStars[rarityLevel] }).map(
-                      (_, i) => (
-                        <Star
-                          key={i}
-                          className="w-4 h-4 text-[#FFC800]"
-                          fill="#FFC800"
-                          strokeWidth={0}
-                        />
-                      ),
-                    )}
+                    {Array.from({ length: rarityConfig.stars }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className="w-4 h-4 text-[#FFC800]"
+                        fill="#FFC800"
+                        strokeWidth={0}
+                      />
+                    ))}
                   </div>
                 </div>
                 <p className="font-['Press_Start_2P'] text-white text-xs mt-2 drop-shadow-[2px_2px_0_rgba(0,0,0,0.3)]">
