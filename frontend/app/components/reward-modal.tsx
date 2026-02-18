@@ -13,6 +13,7 @@ interface RewardModalProps {
   coinsEarned: number;
   funFact: string;
   capturedImage?: string;
+  confidence?: number;
 }
 
 export function RewardModal({
@@ -27,6 +28,7 @@ export function RewardModal({
   coinsEarned,
   funFact,
   capturedImage,
+  confidence = 0,
 }: RewardModalProps) {
   if (!isOpen) return null;
 
@@ -183,6 +185,12 @@ export function RewardModal({
                     </p>
                   </div>
                 </div>
+
+                {confidence > 0 && (
+                  <div className="mt-2 bg-[#2C2C2C] text-white text-xs font-['Nunito'] font-bold px-3 py-1 rounded-full border-2 border-white shadow-sm">
+                    AI Confidence: {confidence}%
+                  </div>
+                )}
 
                 {/* Scientific Name */}
                 <p className="text-center font-['Nunito'] text-sm italic text-[#754F26] mt-2">

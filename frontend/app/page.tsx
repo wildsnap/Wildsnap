@@ -8,12 +8,12 @@ import { RewardModal } from "./components/reward-modal";
 import { AvatarScreen } from "./components/avatar-screen";
 import { ShopScreen } from "./components/shop-screen";
 
-// --- จุดที่ 1: เพิ่ม imageUrl เข้าไปใน Interface ---
+
 interface AnimalData {
   name: string;
   confidence: number;
   funFact?: string;
-  imageUrl?: string; // <--- เพิ่มบรรทัดนี้ครับ (ใส่ ? เพื่อบอกว่าอาจจะไม่มีก็ได้)
+  imageUrl?: string;
 }
 
 export default function Home() {
@@ -35,25 +35,18 @@ export default function Home() {
 
   // รับ data จาก ScanScreen
   const handleAnimalDetected = (data: any) => {
-    // --- จุดที่ 2: แมพข้อมูล imageUrl มาเก็บด้วย ---
     const detectedAnimal: AnimalData = {
-      // เช็คทั้ง name (จาก mock) และ class_name (เผื่อต่อ api ในอนาคต)
       name: data.name || data.class_name || "Unknown Animal",
       confidence: data.confidence || 0,
       funFact:
         data.funFact ||
         data.fun_fact ||
         `Did you know? ${data.class_name} is amazing!`,
-      imageUrl: data.imageUrl, // <--- เพิ่มบรรทัดนี้เพื่อรับรูปภาพจาก ScanScreen
+      imageUrl: data.imageUrl,
     };
 
-    // 2. เก็บลง State
     setCurrentAnimal(detectedAnimal);
-
-    // 3. ปิดกล้อง และ เปิดหน้า Reward
     setShowScanScreen(false);
-
-    // 4. ให้รางวัล
     setCoins((prev) => prev + 50);
     setShowRewardModal(true);
   };
@@ -111,7 +104,8 @@ export default function Home() {
         animalName={currentAnimal?.name || "Unknown"}
         coinsEarned={50}
         funFact={currentAnimal?.funFact || "Great shot!"}
-        capturedImage={currentAnimal?.imageUrl} // <--- เส้นใต้สีแดงจะหายไปแล้วครับ
+        capturedImage={currentAnimal?.imageUrl}
+        confidence={currentAnimal?.confidence}
       />
     </div>
   );
