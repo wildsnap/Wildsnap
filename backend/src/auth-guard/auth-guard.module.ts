@@ -1,7 +1,7 @@
 import { Module, Global } from '@nestjs/common';
 import { AuthGuardService } from './auth-guard.service';
 import { ClerkClientProvider } from '../providers/clerk.provider';
-import { UsersModule } from 'src/users/users.module';
+import { UsersModule } from '../users/users.module';
 
 @Global()
 @Module({
