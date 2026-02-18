@@ -9,7 +9,9 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 const server = express();
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
+  const app = await NestFactory.create(AppModule, new ExpressAdapter(server), {
+    rawBody: true
+  });
 
   const config = new DocumentBuilder()
     .setTitle('Wildsnap API')
@@ -29,6 +31,7 @@ async function bootstrap() {
   });
   
   app.use(cookieParser());
+  app.enableShutdownHooks();
 
   if (process.env.NODE_ENV !== 'production') {
     await app.listen(process.env.PORT ?? 3100);

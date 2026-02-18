@@ -3,26 +3,21 @@ import {
   CanActivate,
   ExecutionContext,
   UnauthorizedException,
-  Inject,
 } from '@nestjs/common';
 import { Request } from 'express';
-import type { ClerkClient } from '@clerk/backend';
 import { verifyToken } from '@clerk/backend';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthGuardService implements CanActivate {
   constructor(
-    @Inject('ClerkClient')
-    private readonly clerkClient: ClerkClient,
+    private readonly usersService: UsersService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
 
-    // Check for session cookie
     const sessionToken = request.cookies?.__session;
-
-    // Check for bearer token
     const authHeader = request.headers.authorization;
     const bearerToken = authHeader?.startsWith('Bearer ')
       ? authHeader.substring(7)
@@ -33,8 +28,8 @@ export class AuthGuardService implements CanActivate {
     }
 
     try {
-      // Try to verify the token (either session or bearer)
       const tokenToVerify = bearerToken || sessionToken;
+      
       const tokenPayload = await verifyToken(tokenToVerify, {
         secretKey: process.env.CLERK_SECRET_KEY,
       });
@@ -43,11 +38,17 @@ export class AuthGuardService implements CanActivate {
         throw new UnauthorizedException('Invalid session');
       }
 
-      const user = await this.clerkClient.users.getUser(tokenPayload.sub);
+      const user = await this.usersService.findOneByClerkId(tokenPayload.sub);
+
+      if (!user) {
+        throw new UnauthorizedException('User record not found in local database');
+      }
+
       (request as any).user = user;
+      
       return true;
     } catch (err) {
-      console.error('Token verification error:', err);
+      console.error('AuthGuard Error:', err.message);
       throw new UnauthorizedException('Invalid or expired token');
     }
   }
