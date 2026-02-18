@@ -1,5 +1,8 @@
 {
     "functions": {
+      "api/**/*.js": {
+        "includeFiles": "generated/prisma/**"
+      },
       "src/main.ts": {
         "includeFiles": "generated/prisma/**"
       }
