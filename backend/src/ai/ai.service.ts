@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import FormData = require('form-data');
+import { PrismaService } from '../prisma/prisma.service';
 
 const CONFIDENCE_THRESHOLD = 85;
 
 @Injectable()
 export class AiService {
+  constructor(private prisma: PrismaService) {}
+
   private AI_URL =
     process.env.GOOGLE_CLOUD_AI_URL || 'http://localhost:8000/predict';
 
@@ -26,49 +29,49 @@ export class AiService {
         maxBodyLength: Infinity,
       });
 
-      if (data.confidence < CONFIDENCE_THRESHOLD) {
-        return {
-          class_name: 'Unknown',
-          confidence: data.confidence,
-          fun_fact:
-            'AI is not sure what this is. Please try getting closer or better lighting.',
-          rarity: 'Common',
-          message: 'Low confidence detection',
-        };
-      }
-
-      // const normalizedName = data.class_name.replace(/_/g, ' ');
-      // const animal = await this.prisma.animal.findFirst({
-      //   where: {
-      //     name: {
-      //       equals: normalizedName,
-      //       mode: 'insensitive', // ค้นหาแบบไม่สนตัวพิมพ์เล็ก-ใหญ่
-      //     },
-      //   },
-      // });
-
-      // if (!animal) {
-      //   console.warn(`Animal ${normalizedName} found by AI but missing in DB.`);
+      // if (data.confidence < CONFIDENCE_THRESHOLD) {
       //   return {
-      //     class_name: normalizedName,
+      //     class_name: 'Unknown',
       //     confidence: data.confidence,
-      //     fun_fact: 'New discovery! Data coming soon.',
+      //     fun_fact:
+      //       'AI is not sure what this is. Please try getting closer or better lighting.',
       //     rarity: 'Common',
+      //     message: 'Low confidence detection',
       //   };
       // }
 
-      // return {
-      //   id: animal.id,
-      //   class_name: animal.name,
-      //   scientific_name: animal.scientificName,
-      //   description: animal.description,
-      //   habitat: animal.habitat,
-      //   fun_fact: animal.funFact,
-      //   rarity: this.formatRarity(animal.rarityLevel),
-      //   confidence: data.confidence,
-      //   imageUrl: animal.imageUrl,
-      //   points_reward: animal.pointsReward,
-      // };
+      const normalizedName = data.class_name.replace(/_/g, ' ');
+      const animal = await this.prisma.animal.findFirst({
+        where: {
+          name: {
+            equals: normalizedName,
+            mode: 'insensitive', // ค้นหาแบบไม่สนตัวพิมพ์เล็ก-ใหญ่
+          },
+        },
+      });
+
+      if (!animal) {
+        console.warn(`Animal ${normalizedName} found by AI but missing in DB.`);
+        return {
+          class_name: normalizedName,
+          confidence: data.confidence,
+          fun_fact: 'New discovery! Data coming soon.',
+          rarity: 'Common',
+        };
+      }
+
+      return {
+        id: animal.id,
+        class_name: animal.name,
+        scientific_name: animal.scientificName,
+        description: animal.description,
+        habitat: animal.habitat,
+        fun_fact: animal.funFact,
+        rarity: this.formatRarity(animal.rarityLevel),
+        confidence: data.confidence,
+        imageUrl: animal.imageUrl,
+        points_reward: animal.pointsReward,
+      };
 
       return data;
     } catch (error) {
@@ -79,5 +82,10 @@ export class AiService {
       }
       throw new Error('Failed to connect to AI Model Service');
     }
+  }
+
+  private formatRarity(rarity: string): string {
+    if (!rarity) return 'Common';
+    return rarity.charAt(0).toUpperCase() + rarity.slice(1).toLowerCase();
   }
 }

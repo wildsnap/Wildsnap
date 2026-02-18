@@ -8,12 +8,16 @@ import { RewardModal } from "./components/reward-modal";
 import { AvatarScreen } from "./components/avatar-screen";
 import { ShopScreen } from "./components/shop-screen";
 
-
 interface AnimalData {
   name: string;
   confidence: number;
   funFact?: string;
   imageUrl?: string;
+  scientificName?: string;
+  description?: string;
+  habitat?: string;
+  rarity?: string;
+  coins?: number;
 }
 
 export default function Home() {
@@ -35,19 +39,26 @@ export default function Home() {
 
   // รับ data จาก ScanScreen
   const handleAnimalDetected = (data: any) => {
+    if (data.class_name === "Unknown") {
+      alert("ไม่สามารถระบุชนิดสัตว์ได้ กรุณาลองถ่ายใหม่อีกครั้งให้ชัดเจนขึ้น");
+      return;
+    }
+
     const detectedAnimal: AnimalData = {
-      name: data.name || data.class_name || "Unknown Animal",
-      confidence: data.confidence || 0,
-      funFact:
-        data.funFact ||
-        data.fun_fact ||
-        `Did you know? ${data.class_name} is amazing!`,
+      name: data.class_name,
+      confidence: data.confidence,
+      funFact: data.fun_fact,
       imageUrl: data.imageUrl,
+      scientificName: data.scientific_name,
+      description: data.description,
+      habitat: data.habitat,
+      rarity: data.rarity,
+      coins: data.points_reward,
     };
 
     setCurrentAnimal(detectedAnimal);
     setShowScanScreen(false);
-    setCoins((prev) => prev + 50);
+    setCoins((prev) => prev + (detectedAnimal.coins || 50));
     setShowRewardModal(true);
   };
 
@@ -102,10 +113,14 @@ export default function Home() {
         isOpen={showRewardModal}
         onClose={() => setShowRewardModal(false)}
         animalName={currentAnimal?.name || "Unknown"}
-        coinsEarned={50}
-        funFact={currentAnimal?.funFact || "Great shot!"}
-        capturedImage={currentAnimal?.imageUrl}
         confidence={currentAnimal?.confidence}
+        capturedImage={currentAnimal?.imageUrl}
+        funFact={currentAnimal?.funFact || "No fun fact available."}
+        scientificName={currentAnimal?.scientificName}
+        description={currentAnimal?.description}
+        habitat={currentAnimal?.habitat}
+        rarityLevel={currentAnimal?.rarity}
+        coinsEarned={currentAnimal?.coins || 50}
       />
     </div>
   );
