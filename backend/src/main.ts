@@ -24,11 +24,11 @@ async function bootstrap() {
     jsonDocumentUrl: 'swagger/json',
   });
 
-  app.enableCors({
-    origin: '*',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
-  });
+  // app.enableCors({
+  //   origin: '*',
+  //   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  //   credentials: true,
+  // });
   
   app.use(cookieParser());
   app.enableShutdownHooks();
