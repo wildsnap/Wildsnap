@@ -24,11 +24,11 @@ async function bootstrap() {
     jsonDocumentUrl: 'swagger/json',
   });
 
-  app.enableCors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
-  });
+  // app.enableCors({
+  //   origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+  //   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  //   credentials: true,
+  // });
   
   app.use(cookieParser());
   app.enableShutdownHooks();
