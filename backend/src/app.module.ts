@@ -7,6 +7,7 @@ import { AuthGuardModule } from './auth-guard/auth-guard.module';
 import { ClerkModule } from './providers/clerk.module';
 import { ConfigModule } from '@nestjs/config';
 import { AiModule } from './ai/ai.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { AiModule } from './ai/ai.module';
     AuthGuardModule,
     ClerkModule,
     ConfigModule.forRoot({ isGlobal: true }),
+    PrismaModule,
   ],
   controllers: [AppController],
   providers: [AppService, UsersService],
