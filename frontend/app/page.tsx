@@ -18,6 +18,7 @@ interface AnimalData {
   habitat?: string;
   rarity?: string;
   coins?: number;
+  capturedImage?: string;
 }
 
 export default function Home() {
@@ -54,6 +55,7 @@ export default function Home() {
       habitat: data.habitat,
       rarity: data.rarity,
       coins: data.points_reward,
+      capturedImage: data.capturedImage,
     };
 
     setCurrentAnimal(detectedAnimal);
@@ -114,7 +116,7 @@ export default function Home() {
         onClose={() => setShowRewardModal(false)}
         animalName={currentAnimal?.name || "Unknown"}
         confidence={currentAnimal?.confidence}
-        capturedImage={currentAnimal?.imageUrl}
+        capturedImage={currentAnimal?.capturedImage}
         funFact={currentAnimal?.funFact || "No fun fact available."}
         scientificName={currentAnimal?.scientificName}
         description={currentAnimal?.description}

@@ -64,6 +64,7 @@ export function CameraModal({ isOpen, onClose, onSuccess }: CameraModalProps) {
     const context = canvas.getContext("2d");
     if (context) {
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const previewImage = canvas.toDataURL("image/jpeg", 0.8);
 
       canvas.toBlob(
         async (blob) => {
@@ -75,7 +76,8 @@ export function CameraModal({ isOpen, onClose, onSuccess }: CameraModalProps) {
           const file = new File([blob], "captured-animal.jpg", {
             type: "image/jpeg",
           });
-          await uploadImage(file);
+          // await uploadImage(file);
+          await uploadImage(file, previewImage);
         },
         "image/jpeg",
         0.8,
@@ -83,7 +85,7 @@ export function CameraModal({ isOpen, onClose, onSuccess }: CameraModalProps) {
     }
   };
 
-  const uploadImage = async (file: File) => {
+  const uploadImage = async (file: File, previewImage: string) => {
     const formData = new FormData();
     formData.append("file", file);
 
@@ -94,7 +96,12 @@ export function CameraModal({ isOpen, onClose, onSuccess }: CameraModalProps) {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      onSuccess(response.data);
+      const dataWithImage = {
+        ...response.data,
+        capturedImage: previewImage, // ยัดรูปภาพที่ถ่ายใส่ตัวแปรชื่อ capturedImage
+      };
+
+      onSuccess(dataWithImage);
       onClose();
     } catch (error) {
       console.error("Upload failed", error);
