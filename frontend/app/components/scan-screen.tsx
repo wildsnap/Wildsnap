@@ -65,6 +65,7 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
       if (!context) return;
 
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const previewImage = canvas.toDataURL("image/jpeg", 0.8);
 
       // 2.2 แปลง Canvas เป็น Blob/File
       canvas.toBlob(async (blob) => {
@@ -88,11 +89,15 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
           });
 
           console.log("AI Response:", response.data);
+          const dataWithImage = {
+            ...response.data,
+            capturedImage: previewImage,
+          };
 
           // รอ Animation เล่นให้จบนิดนึงเพื่อความสมูท (Optional)
           setTimeout(() => {
              setIsScanning(false);
-             onAnimalDetected(response.data); // ส่งข้อมูลกลับไปหน้า Home
+             onAnimalDetected(dataWithImage);
              onClose(); // ปิดหน้า Scan
           }, 500);
 
