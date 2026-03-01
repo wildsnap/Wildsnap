@@ -1,103 +1,188 @@
-import { Lock } from 'lucide-react';
-import svgPaths from "../../imports/svg-h1mwi5uxqn";
+"use client";
+
+import { Lock, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useAuth } from "@clerk/nextjs";
+import Image from "next/image";
 
 interface Animal {
   id: number;
   name: string;
-  locked: boolean;
-  svg?: typeof svgPaths;
+  scientificName?: string;
+  description?: string;
+  habitat?: string;
+  rarityLevel: string;
+  imageUrl: string | null;
+  isUnlocked: boolean;
+  capturedAt?: string | null;
+}
+
+interface Progress {
+  unlocked: number;
+  total: number;
+  percentage: number;
 }
 
 interface CollectionScreenProps {
   onAnimalClick: (id: number) => void;
 }
 
-// Pixel animal silhouettes (simplified)
-const animals: Animal[] = [
-  { id: 1, name: 'Bear', locked: false },
-  { id: 2, name: 'Fox', locked: false },
-  { id: 3, name: 'Rhino', locked: false },
-  { id: 4, name: 'Deer', locked: false },
-  { id: 5, name: 'Wolf', locked: false },
-  { id: 6, name: 'Lion', locked: true },
-  { id: 7, name: 'Tiger', locked: true },
-  { id: 8, name: 'Elephant', locked: true },
-  { id: 9, name: 'Giraffe', locked: true },
-  { id: 10, name: 'Zebra', locked: true },
-  { id: 11, name: 'Panda', locked: true },
-  { id: 12, name: 'Koala', locked: true },
-];
-
 export function CollectionScreen({ onAnimalClick }: CollectionScreenProps) {
-  const foundCount = animals.filter(a => !a.locked).length;
-  const totalCount = animals.length;
+  const { userId: clerkId, isLoaded } = useAuth();
+  console.log("Clerk ID:", clerkId);
+
+  const [animals, setAnimals] = useState<Animal[]>([]);
+  const [progress, setProgress] = useState<Progress>({
+    unlocked: 0,
+    total: 0,
+    percentage: 0,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isLoaded || !clerkId) return;
+
+    const fetchCollection = async () => {
+      try {
+        setIsLoading(true);
+        const apiUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3100";
+
+        const response = await axios.get(
+          `${apiUrl}/collections/user/${clerkId}`,
+        );
+
+        setAnimals(response.data.animals);
+        setProgress(response.data.progress);
+        setError(null);
+      } catch (err) {
+        console.error("Failed to fetch collection:", err);
+        setError("ไม่สามารถดึงข้อมูลสมุดสะสมได้ กรุณาลองใหม่อีกครั้ง");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCollection();
+  }, [clerkId, isLoaded]);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col h-full bg-[#F5F8F0] items-center justify-center pb-20">
+        <Loader2 className="w-12 h-12 text-[#00D66F] animate-spin mb-4" />
+        <p className="font-['Press_Start_2P'] text-sm text-[#754F26] animate-pulse">
+          LOADING COLLECTION...
+        </p>
+      </div>
+    );
+  }
+
+  // หน้าจอตอนเกิด Error
+  if (error) {
+    return (
+      <div className="flex flex-col h-full bg-[#F5F8F0] items-center justify-center pb-20 px-4 text-center">
+        <p className="font-['Nunito'] text-red-500 font-bold mb-4">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="bg-[#FFC800] border-4 border-[#2C2C2C] px-6 py-2 rounded-xl font-['Press_Start_2P'] text-xs shadow-[4px_4px_0_0_rgba(0,0,0,0.2)] active:translate-y-1 active:shadow-none"
+        >
+          RETRY
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-[#F5F8F0] to-[#E8F5E9] pb-20">
+    <div className="flex flex-col h-full bg-gradient-to-b from-[#F5F8F0] to-[#E8F5E9]">
       {/* Header */}
-      <header className="bg-[#754F26] border-b-4 border-[#2C2C2C] px-4 py-6 shadow-[0_4px_0_0_rgba(0,0,0,0.2)]">
+      <header className="bg-[#754F26] border-b-4 border-[#2C2C2C] px-4 py-6 shadow-[0_4px_0_0_rgba(0,0,0,0.2)] z-10">
         <h1 className="font-['Press_Start_2P'] text-xl text-[#FFC800] text-center drop-shadow-[2px_2px_0_rgba(0,0,0,0.5)]">
           ANIMAL DEX
         </h1>
         <div className="flex justify-center gap-2 mt-3">
           <div className="font-['Nunito'] text-white font-bold">
-            {foundCount}/{totalCount} Found
+            {progress.unlocked}/{progress.total} Found
           </div>
         </div>
         {/* Progress bar */}
         <div className="mt-3 h-4 bg-[#513418] border-3 border-[#2C2C2C] rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-gradient-to-r from-[#00D66F] to-[#00F47F] transition-all duration-500"
-            style={{ width: `${(foundCount / totalCount) * 100}%` }}
+          <div
+            className="h-full bg-gradient-to-r from-[#00D66F] to-[#00F47F] transition-all duration-1000 ease-out"
+            style={{ width: `${progress.percentage}%` }}
           />
         </div>
       </header>
 
       {/* Collection Grid */}
       <main className="flex-1 overflow-y-auto px-4 py-6">
-        <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
+        <div className="grid grid-cols-3 gap-3 max-w-md mx-auto pb-20">
+          {" "}
           {animals.map((animal) => (
             <button
               key={animal.id}
-              onClick={() => !animal.locked && onAnimalClick(animal.id)}
-              disabled={animal.locked}
+              onClick={() => animal.isUnlocked && onAnimalClick(animal.id)}
+              disabled={!animal.isUnlocked}
               className={`
-                aspect-square rounded-xl border-4 border-[#2C2C2C]
-                flex flex-col items-center justify-center gap-2 p-3
-                transition-all duration-200
-                ${animal.locked 
-                  ? 'bg-[#9E9E9E] cursor-not-allowed shadow-[4px_4px_0_0_rgba(0,0,0,0.2)]' 
-                  : 'bg-white hover:bg-[#FFF9E6] active:scale-95 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] hover:shadow-[6px_6px_0_0_rgba(0,0,0,0.25)]'
+                relative flex flex-col items-center justify-between p-2 pt-3 pb-2 
+                border-4 border-[#2C2C2C] rounded-2xl
+                transition-all duration-200 min-h-[140px] {/* กำหนดความสูงขั้นต่ำให้กล่องดูสมมาตร */}
+                ${
+                  !animal.isUnlocked
+                    ? "bg-[#A3A3A3] cursor-not-allowed shadow-[4px_4px_0_0_rgba(0,0,0,0.2)]"
+                    : "bg-[#FFFDF5] hover:bg-[#FFF9E6] active:scale-95 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] hover:shadow-[6px_6px_0_0_rgba(0,0,0,0.25)]"
                 }
               `}
             >
-              {animal.locked ? (
-                <>
-                  <Lock className="w-8 h-8 text-[#616161]" strokeWidth={3} />
-                  <div className="w-12 h-12 bg-[#757575] border-2 border-[#424242] rounded opacity-50" />
-                </>
-              ) : (
-                <>
-                  {/* Simplified pixel animal - using colored squares as placeholder */}
-                  <div className="w-16 h-16 relative">
-                    <svg viewBox="0 0 32 32" className="w-full h-full">
-                      <rect x="8" y="4" width="4" height="4" fill="#754F26" />
-                      <rect x="20" y="4" width="4" height="4" fill="#754F26" />
-                      <rect x="8" y="8" width="16" height="12" fill="#AA7A41" />
-                      <rect x="8" y="20" width="4" height="8" fill="#754F26" />
-                      <rect x="20" y="20" width="4" height="8" fill="#754F26" />
-                      <rect x="10" y="10" width="2" height="2" fill="#2C2C2C" />
-                      <rect x="20" y="10" width="2" height="2" fill="#2C2C2C" />
-                    </svg>
-                  </div>
-                </>
-              )}
-              <div className="text-center">
-                <span className="font-['Nunito'] text-xs font-bold text-[#2C2C2C] block">
-                  #{animal.id.toString().padStart(3, '0')}
+              <div className="flex-1 flex items-center justify-center w-full mb-1">
+                {!animal.isUnlocked ? (
+                  <>
+                    <div className="absolute top-2 right-2">
+                      <Lock
+                        className="w-4 h-4 text-[#525252]"
+                        strokeWidth={3}
+                      />
+                    </div>
+                    {animal.imageUrl ? (
+                      <Image
+                        src={animal.imageUrl}
+                        alt="Unknown"
+                        width={56}
+                        height={56}
+                        className="object-contain opacity-40 grayscale"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-[#757575] border-2 border-[#424242] rounded-lg opacity-50" />
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {animal.imageUrl ? (
+                      <Image
+                        src={animal.imageUrl}
+                        alt={animal.name}
+                        width={80}
+                        height={80}
+                        className="object-contain drop-shadow-[0_4px_4px_rgba(0,0,0,0.25)] transform transition-transform group-hover:scale-110"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="w-16 h-16 relative">
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              <div className="w-full text-center mt-auto bg-black/5 rounded-lg py-1">
+                <span className="font-['Nunito'] text-[10px] font-black text-[#2C2C2C]/60 block mb-0.5">
+                  #{animal.id.toString().padStart(3, "0")}
                 </span>
-                {!animal.locked && (
-                  <span className="font-['Nunito'] text-[10px] text-[#754F26]">
+
+                {animal.isUnlocked && (
+                  <span className="font-['Nunito'] text-[11px] font-bold text-[#5C3D1F] block leading-tight px-1">
                     {animal.name}
                   </span>
                 )}

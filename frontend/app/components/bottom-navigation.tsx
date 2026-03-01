@@ -8,7 +8,7 @@ interface BottomNavigationProps {
 export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationProps) {
   const tabs = [
     { id: 'scan' as const, icon: Camera, label: 'Scan' },
-    { id: 'collection' as const, icon: Grid3x3, label: 'Dex' },
+    { id: 'collection' as const, icon: Grid3x3, label: 'Collection' },
     { id: 'avatar' as const, icon: User, label: 'Avatar' },
     { id: 'shop' as const, icon: ShoppingBag, label: 'Shop' },
   ];
