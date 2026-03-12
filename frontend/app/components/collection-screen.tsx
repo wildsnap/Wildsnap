@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "@clerk/nextjs";
 import Image from "next/image";
+import { AnimalDetailModal } from "./modal/animal-detail-modal";
 
 interface Animal {
   id: number;
@@ -30,19 +31,18 @@ interface CollectionScreenProps {
 
 export function CollectionScreen({ onAnimalClick }: CollectionScreenProps) {
   const { userId: clerkId, isLoaded } = useAuth();
-  console.log("Clerk ID:", clerkId);
-
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [progress, setProgress] = useState<Progress>({
     unlocked: 0,
     total: 0,
     percentage: 0,
   });
+  const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isLoaded || !clerkId) return;
+    if (!isLoaded) return;
 
     const fetchCollection = async () => {
       try {
@@ -50,12 +50,48 @@ export function CollectionScreen({ onAnimalClick }: CollectionScreenProps) {
         const apiUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:3100";
 
-        const response = await axios.get(
-          `${apiUrl}/collections/user/${clerkId}`,
-        );
+        const allAnimalsResponse = await axios.get(`${apiUrl}/animals`);
+        const masterAnimals = allAnimalsResponse.data;
+        const totalAnimals = masterAnimals.length;
 
-        setAnimals(response.data.animals);
-        setProgress(response.data.progress);
+        if (!clerkId) {
+          const lockedAnimals = masterAnimals.map((animal: any) => ({
+            id: animal.id,
+            name: "???",
+            scientificName: "???",
+            description: "Explore the wild to unlock this animal!",
+            funFact: null,
+            habitat: "Unknown",
+            rarityLevel: animal.rarityLevel,
+            isUnlocked: false,
+            capturedAt: null,
+            pointsReward: animal.pointsReward,
+          }));
+
+          setAnimals(lockedAnimals);
+          setProgress({
+            unlocked: 0,
+            total: totalAnimals,
+            percentage: 0,
+          });
+        } else {
+          const collectionResponse = await axios.get(
+            `${apiUrl}/collections/user/${clerkId}`,
+          );
+          const userAnimals = collectionResponse.data.animals;
+          const unlockedCount = collectionResponse.data.progress.unlocked;
+
+          setAnimals(userAnimals);
+          setProgress({
+            unlocked: unlockedCount,
+            total: totalAnimals,
+            percentage:
+              totalAnimals > 0
+                ? Math.round((unlockedCount / totalAnimals) * 100)
+                : 0,
+          });
+        }
+
         setError(null);
       } catch (err) {
         console.error("Failed to fetch collection:", err);
@@ -79,7 +115,6 @@ export function CollectionScreen({ onAnimalClick }: CollectionScreenProps) {
     );
   }
 
-  // หน้าจอตอนเกิด Error
   if (error) {
     return (
       <div className="flex flex-col h-full bg-[#F5F8F0] items-center justify-center pb-20 px-4 text-center">
@@ -95,7 +130,7 @@ export function CollectionScreen({ onAnimalClick }: CollectionScreenProps) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-[#F5F8F0] to-[#E8F5E9]">
+    <div className="flex flex-col h-full bg-linear-to-b from-[#F5F8F0] to-[#E8F5E9]">
       {/* Header */}
       <header className="bg-[#754F26] border-b-4 border-[#2C2C2C] px-4 py-6 shadow-[0_4px_0_0_rgba(0,0,0,0.2)] z-10">
         <h1 className="font-['Press_Start_2P'] text-xl text-[#FFC800] text-center drop-shadow-[2px_2px_0_rgba(0,0,0,0.5)]">
@@ -109,7 +144,7 @@ export function CollectionScreen({ onAnimalClick }: CollectionScreenProps) {
         {/* Progress bar */}
         <div className="mt-3 h-4 bg-[#513418] border-3 border-[#2C2C2C] rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-[#00D66F] to-[#00F47F] transition-all duration-1000 ease-out"
+            className="h-full bg-linear-to-r from-[#00D66F] to-[#00F47F] transition-all duration-1000 ease-out"
             style={{ width: `${progress.percentage}%` }}
           />
         </div>
@@ -122,7 +157,12 @@ export function CollectionScreen({ onAnimalClick }: CollectionScreenProps) {
           {animals.map((animal) => (
             <button
               key={animal.id}
-              onClick={() => animal.isUnlocked && onAnimalClick(animal.id)}
+              onClick={() => {
+                if (animal.isUnlocked) {
+                  setSelectedAnimal(animal);
+                  onAnimalClick(animal.id);
+                }
+              }}
               disabled={!animal.isUnlocked}
               className={`
                 relative flex flex-col items-center justify-between p-2 pt-3 pb-2 
@@ -169,8 +209,7 @@ export function CollectionScreen({ onAnimalClick }: CollectionScreenProps) {
                         unoptimized
                       />
                     ) : (
-                      <div className="w-16 h-16 relative">
-                      </div>
+                      <div className="w-16 h-16 relative"></div>
                     )}
                   </>
                 )}
@@ -191,6 +230,13 @@ export function CollectionScreen({ onAnimalClick }: CollectionScreenProps) {
           ))}
         </div>
       </main>
+
+      {selectedAnimal && (
+        <AnimalDetailModal
+          animal={selectedAnimal}
+          onClose={() => setSelectedAnimal(null)}
+        />
+      )}
     </div>
   );
 }
