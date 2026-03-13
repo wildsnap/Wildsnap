@@ -8,4 +8,11 @@ export class PredictDto {
 export class FileUploadDto {
   @ApiProperty({ type: 'string', format: 'binary' })
   file: any;
+
+  @ApiProperty({
+    type: 'string',
+    description: 'The ID from Clerk Auth',
+    required: false,
+  })
+  clerkId?: string;
 }

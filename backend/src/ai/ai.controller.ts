@@ -5,6 +5,7 @@ import {
   UploadedFile,
   HttpException,
   HttpStatus,
+  Body,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -24,11 +25,14 @@ export class AiController {
     description: 'Animal image file (jpg, png)',
     type: FileUploadDto,
   })
-  async predict(@UploadedFile() file: Express.Multer.File) {
+  async predict(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('clerkId') clerkId: string,
+  ) {
     if (!file) {
       throw new HttpException('No file uploaded', HttpStatus.BAD_REQUEST);
     }
 
-    return this.aiService.predict(file);
+    return this.aiService.predict(file, clerkId);
   }
 }
