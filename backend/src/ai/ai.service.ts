@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import FormData from 'form-data';
 import { PrismaService } from '../prisma/prisma.service';
+import { SupabaseService } from './supabase.service';
 
 const CONFIDENCE_THRESHOLD = 85;
 
@@ -11,7 +12,10 @@ export class AiService {
   private readonly AI_URL =
     process.env.GOOGLE_CLOUD_AI_URL || 'http://localhost:8000/predict';
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private supabaseService: SupabaseService,
+  ) {}
 
   async predict(file: Express.Multer.File, clerkId: string) {
     try {
@@ -24,10 +28,13 @@ export class AiService {
         where: { name: { equals: normalizedName, mode: 'insensitive' } },
       });
 
+      const uploadedImageUrl = await this.supabaseService.uploadImage(file);
+
       const isFirstDiscovery = await this.processUserScan(
         clerkId,
         animal,
         aiData.confidence,
+        uploadedImageUrl,
       );
 
       if (!animal) {
@@ -68,6 +75,7 @@ export class AiService {
     clerkId: string,
     animal: any,
     confidence: number,
+    imageUrl: string | null,
   ): Promise<boolean> {
     if (!clerkId) return false;
 
@@ -81,7 +89,7 @@ export class AiService {
         status: animal ? 'SUCCESS' : 'UNKNOWN_ANIMAL',
         predictedAnimalId: animal ? animal.id : null,
         confidenceScore: confidence,
-        // imageUrl: null
+        imageUrl: imageUrl,
       },
     });
 
