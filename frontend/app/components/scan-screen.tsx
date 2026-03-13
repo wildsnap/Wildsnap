@@ -1,8 +1,9 @@
 "use client";
 
-import { X, Zap } from "lucide-react";
+import { X, Zap, ZoomIn, ZoomOut } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
+import { useAuth } from "@clerk/nextjs";
 
 interface ScanScreenProps {
   onClose: () => void;
@@ -10,12 +11,21 @@ interface ScanScreenProps {
 }
 
 export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
+  const { userId: clerkId } = useAuth();
   const [isScanning, setIsScanning] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
 
-  // 1. Setup Camera เมื่อ Component ถูกโหลด
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [zoomCapabilities, setZoomCapabilities] = useState<{
+    min: number;
+    max: number;
+    step: number;
+  } | null>(null);
+  const trackRef = useRef<MediaStreamTrack | null>(null);
+
+  // Setup Camera
   useEffect(() => {
     let stream: MediaStream | null = null;
 
@@ -31,6 +41,20 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
+
+        const videoTrack = stream.getVideoTracks()[0];
+        trackRef.current = videoTrack;
+
+        const capabilities = videoTrack.getCapabilities() as any;
+        if (capabilities.zoom) {
+          setZoomCapabilities({
+            min: capabilities.zoom.min || 1,
+            max: capabilities.zoom.max || 3, // 3x - 5x
+            step: capabilities.zoom.step || 0.1,
+          });
+          setZoomLevel(capabilities.zoom.min || 1);
+        }
+
         setCameraError(null);
       } catch (err) {
         console.error("Camera Error:", err);
@@ -48,123 +72,100 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
     };
   }, []);
 
-  // 2. ฟังก์ชันถ่ายรูปและส่ง API
+  const handleZoomChange = async (newZoom: number) => {
+    setZoomLevel(newZoom);
+    if (trackRef.current && zoomCapabilities) {
+      try {
+        await trackRef.current.applyConstraints({
+          advanced: [{ zoom: newZoom } as any],
+        });
+      } catch (err) {
+        console.warn("Zoom constraint failed", err);
+      }
+    }
+  };
+
   const handleScan = async () => {
     if (!videoRef.current || !canvasRef.current) return;
 
     setIsScanning(true);
 
+    videoRef.current.pause();
+
     try {
-      // 2.1 วาดภาพจาก Video ลง Canvas
+      // วาดภาพจาก Video ลง Canvas
       const video = videoRef.current;
       const canvas = canvasRef.current;
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
-      const context = canvas.getContext('2d');
+      const context = canvas.getContext("2d");
       if (!context) return;
 
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
       const previewImage = canvas.toDataURL("image/jpeg", 0.8);
 
       // 2.2 แปลง Canvas เป็น Blob/File
-      canvas.toBlob(async (blob) => {
-        if (!blob) {
-          setIsScanning(false);
-          return;
-        }
+      canvas.toBlob(
+        async (blob) => {
+          if (!blob) {
+            setIsScanning(false);
+            videoRef.current?.play();
+            return;
+          }
 
-        const file = new File([blob], "captured-animal.jpg", { type: "image/jpeg" });
-        const formData = new FormData();
-        formData.append('file', file);
-
-        try {
-          // 2.3 ส่งไปยัง NestJS API
-          // TODO: เปลี่ยน URL นี้ให้เป็น IP เครื่องจริง หรือ Domain เมื่อ Deploy
-          // ตัวอย่าง: 'https://api.yourdomain.com/ai/predict' หรือ 'http://192.168.1.xxx:3000/ai/predict'
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3100';
-
-          const response = await axios.post(`${apiUrl}/ai/predict`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
+          const file = new File([blob], "captured-animal.jpg", {
+            type: "image/jpeg",
           });
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("clerkId", clerkId as string);
 
-          console.log("AI Response:", response.data);
-          const dataWithImage = {
-            ...response.data,
-            capturedImage: previewImage,
-          };
+          try {
+            // NestJS API
+            const apiUrl =
+              process.env.NEXT_PUBLIC_API_URL || "http://localhost:3100";
 
-          // รอ Animation เล่นให้จบนิดนึงเพื่อความสมูท (Optional)
-          setTimeout(() => {
-             setIsScanning(false);
-             onAnimalDetected(dataWithImage);
-             onClose(); // ปิดหน้า Scan
-          }, 500);
+            const response = await axios.post(
+              `${apiUrl}/ai/predict`,
+              formData,
+              {
+                headers: { "Content-Type": "multipart/form-data" },
+              },
+            );
 
-        } catch (apiError) {
-          console.error("API Error:", apiError);
-          alert("เกิดข้อผิดพลาดในการวิเคราะห์ภาพ");
-          setIsScanning(false);
-        }
-      }, 'image/jpeg', 0.8); // Quality 0.8
+            const dataWithImage = {
+              ...response.data,
+              capturedImage: previewImage,
+            };
 
+            setTimeout(() => {
+              setIsScanning(false);
+              onAnimalDetected(dataWithImage);
+              onClose(); // ปิดหน้า Scan
+            }, 500);
+          } catch (apiError) {
+            console.error("API Error:", apiError);
+            alert("เกิดข้อผิดพลาดในการวิเคราะห์ภาพ");
+            setIsScanning(false);
+            videoRef.current?.play();
+          }
+        },
+        "image/jpeg",
+        0.8,
+      ); // Quality 0.8
     } catch (err) {
       console.error("Capture Error:", err);
       setIsScanning(false);
+      videoRef.current?.play();
     }
   };
 
-  // const handleScan = async () => {
-  //   if (!videoRef.current || !canvasRef.current) return;
-
-  //   setIsScanning(true);
-
-  //   try {
-  //     const video = videoRef.current;
-  //     const canvas = canvasRef.current;
-
-  //     // ตั้งขนาด canvas ให้ตรงกับ video
-  //     canvas.width = video.videoWidth;
-  //     canvas.height = video.videoHeight;
-
-  //     const context = canvas.getContext("2d");
-  //     if (!context) return;
-
-  //     // วาดรูปจาก video ลง canvas
-  //     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  //     // --- ส่วนที่แก้ไข: แปลงเป็น Data URL แทนการส่ง API ---
-  //     const capturedImageUrl = canvas.toDataURL("image/jpeg", 0.8);
-
-  //     // จำลองเวลา Scan เหมือนรอ API (เพื่อให้ User รู้สึกว่ามันกำลังวิเคราะห์)
-  //     setTimeout(() => {
-  //       setIsScanning(false);
-
-  //       // ส่งข้อมูล Mock กลับไปหน้า Home
-  //       onAnimalDetected({
-  //         name: "Mystery Animal", // ชื่อสมมติ
-  //         confidence: 0.99,
-  //         funFact: "You found this animal in the wild!",
-  //         imageUrl: capturedImageUrl, // ส่งรูปที่ถ่ายไปด้วย!
-  //       });
-
-  //       onClose();
-  //     }, 1500); // รอ 1.5 วินาที
-  //   } catch (err) {
-  //     console.error("Capture Error:", err);
-  //     setIsScanning(false);
-  //   }
-  // };
-
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
-      {/* Hidden Canvas for processing */}
       <canvas ref={canvasRef} className="hidden" />
 
-      {/* Camera View Simulation -> Real Camera Feed */}
       <div className="relative flex-1 bg-black overflow-hidden">
-        {/* 1. Real Video Element */}
-        {/* playsInline สำคัญมากสำหรับ iOS */}
         <video
           ref={videoRef}
           autoPlay
@@ -173,7 +174,6 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
           className="absolute inset-0 w-full h-full object-cover"
         />
 
-        {/* Error State */}
         {cameraError && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-50 text-white p-4 text-center">
             <p>{cameraError}</p>
@@ -186,24 +186,17 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
           </div>
         )}
 
-        {/* 2. Grid Overlay (Optional - ทำให้จางลงเพื่อให้เห็นกล้องชัดขึ้น) */}
-        <div className="absolute inset-0 pointer-events-none opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')]" />
-
-        {/* Scanning Frame (UI เดิมของคุณ) */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="relative w-[280px] h-[280px]">
-            {/* Corner brackets */}
             <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-[#00D66F] rounded-tl-lg" />
             <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-[#00D66F] rounded-tr-lg" />
             <div className="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4 border-[#00D66F] rounded-bl-lg" />
             <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-[#00D66F] rounded-br-lg" />
 
-            {/* Scanning line animation */}
             {isScanning && (
               <div className="absolute inset-x-0 h-1 bg-[#00D66F] shadow-[0_0_10px_2px_rgba(0,214,111,0.8)] animate-[scan_2s_ease-in-out_infinite]" />
             )}
 
-            {/* Center crosshair */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="relative w-8 h-8">
                 <div className="absolute inset-x-0 top-1/2 h-0.5 bg-[#FFC800] -translate-y-1/2" />
@@ -213,7 +206,23 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
           </div>
         </div>
 
-        {/* Top Overlay */}
+        {/* Zoom Control Slider */}
+        {zoomCapabilities && (
+          <div className="absolute bottom-36 left-0 right-0 px-12 flex items-center justify-center gap-4 z-20">
+            <ZoomOut className="w-5 h-5 text-white/80 drop-shadow-md" />
+            <input
+              type="range"
+              min={zoomCapabilities.min}
+              max={zoomCapabilities.max}
+              step={zoomCapabilities.step}
+              value={zoomLevel}
+              onChange={(e) => handleZoomChange(parseFloat(e.target.value))}
+              className="w-full h-2 bg-white/30 rounded-lg appearance-none cursor-pointer accent-[#FFC800]"
+            />
+            <ZoomIn className="w-5 h-5 text-white/80 drop-shadow-md" />
+          </div>
+        )}
+
         <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/60 to-transparent p-6 z-10">
           <div className="flex items-center justify-between">
             <button
@@ -229,7 +238,6 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
           </div>
         </div>
 
-        {/* Bottom Instructions */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-8 pb-32 pointer-events-none">
           <div className="text-center">
             <p className="font-['Nunito'] text-white text-lg font-bold mb-2">
@@ -242,7 +250,6 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
         </div>
       </div>
 
-      {/* Scan Button */}
       <div className="absolute bottom-8 left-0 right-0 flex justify-center z-20">
         <button
           onClick={handleScan}
@@ -263,11 +270,19 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
         </button>
       </div>
 
-      {/* Custom scan animation */}
       <style>{`
         @keyframes scan {
           0%, 100% { top: 0; }
           50% { top: calc(100% - 4px); }
+        }
+        input[type="range"]::-webkit-slider-thumb {
+          appearance: none;
+          width: 20px;
+          height: 20px;
+          background: #FFC800;
+          border: 3px solid #2C2C2C;
+          border-radius: 50%;
+          cursor: pointer;
         }
       `}</style>
     </div>

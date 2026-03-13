@@ -7,6 +7,7 @@ import { ScanScreen } from "./components/scan-screen";
 import { RewardModal } from "./components/reward-modal";
 import { AvatarScreen } from "./components/avatar-screen";
 import { ShopScreen } from "./components/shop-screen";
+import { UnlockAnimation } from "./components/animations/unlock-animation";
 
 interface AnimalData {
   name: string;
@@ -19,6 +20,7 @@ interface AnimalData {
   rarity?: string;
   coins?: number;
   capturedImage?: string;
+  isNewDiscovery?: boolean;
 }
 
 export default function Home() {
@@ -33,6 +35,8 @@ export default function Home() {
   // State ข้อมูล
   const [coins, setCoins] = useState(300);
   const [currentAnimal, setCurrentAnimal] = useState<AnimalData | null>(null);
+
+  const [showUnlockAnimation, setShowUnlockAnimation] = useState(false);
 
   const handleScanClick = () => {
     setShowScanScreen(true);
@@ -56,6 +60,7 @@ export default function Home() {
       rarity: data.rarity,
       coins: data.points_reward,
       capturedImage: data.capturedImage,
+      isNewDiscovery: data.isNewDiscovery,
     };
 
     setCurrentAnimal(detectedAnimal);
@@ -70,6 +75,21 @@ export default function Home() {
 
   const handlePurchase = (itemId: number) => {
     console.log("Purchase item:", itemId);
+  };
+
+  const handleRewardModalClose = () => {
+    setShowRewardModal(false);
+
+    if (currentAnimal?.isNewDiscovery) {
+      setShowUnlockAnimation(true);
+    } else {
+      setCurrentAnimal(null);
+    }
+  };
+
+  const handleUnlockComplete = () => {
+    setShowUnlockAnimation(false);
+    setCurrentAnimal(null); 
   };
 
   return (
@@ -113,7 +133,7 @@ export default function Home() {
       {/* Reward Modal */}
       <RewardModal
         isOpen={showRewardModal}
-        onClose={() => setShowRewardModal(false)}
+        onClose={handleRewardModalClose}
         animalName={currentAnimal?.name || "Unknown"}
         confidence={currentAnimal?.confidence}
         capturedImage={currentAnimal?.capturedImage}
@@ -123,6 +143,14 @@ export default function Home() {
         habitat={currentAnimal?.habitat}
         rarityLevel={currentAnimal?.rarity}
         coinsEarned={currentAnimal?.coins || 50}
+      />
+
+      <UnlockAnimation
+        isOpen={showUnlockAnimation}
+        onComplete={handleUnlockComplete}
+        animalName={currentAnimal?.name || "Unknown"}
+        rarityLevel={(currentAnimal?.rarity as any) || "Common"} 
+        imageUrl={currentAnimal?.imageUrl}
       />
     </div>
   );

@@ -8,11 +8,15 @@ import { ClerkModule } from './providers/clerk.module';
 import { ConfigModule } from '@nestjs/config';
 import { AiModule } from './ai/ai.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { CollectionsModule } from './collections/collections.module';
+import { AnimalsModule } from './animals/animals.module';
 
 @Module({
   imports: [
     UsersModule,
     AiModule,
+    CollectionsModule,
+    AnimalsModule,
     AuthGuardModule,
     ClerkModule,
     ConfigModule.forRoot({ isGlobal: true }),
