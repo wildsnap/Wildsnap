@@ -90,6 +90,8 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
 
     setIsScanning(true);
 
+    videoRef.current.pause();
+
     try {
       // วาดภาพจาก Video ลง Canvas
       const video = videoRef.current;
@@ -108,6 +110,7 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
         async (blob) => {
           if (!blob) {
             setIsScanning(false);
+            videoRef.current?.play();
             return;
           }
 
@@ -145,6 +148,7 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
             console.error("API Error:", apiError);
             alert("เกิดข้อผิดพลาดในการวิเคราะห์ภาพ");
             setIsScanning(false);
+            videoRef.current?.play();
           }
         },
         "image/jpeg",
@@ -153,6 +157,7 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
     } catch (err) {
       console.error("Capture Error:", err);
       setIsScanning(false);
+      videoRef.current?.play();
     }
   };
 
