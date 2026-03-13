@@ -3,6 +3,7 @@
 import { X, Zap } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
+import { useAuth } from "@clerk/nextjs";
 
 interface ScanScreenProps {
   onClose: () => void;
@@ -10,12 +11,13 @@ interface ScanScreenProps {
 }
 
 export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
+  const { userId: clerkId } = useAuth();
   const [isScanning, setIsScanning] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
 
-  // 1. Setup Camera เมื่อ Component ถูกโหลด
+  // Setup Camera เมื่อ Component ถูกโหลด
   useEffect(() => {
     let stream: MediaStream | null = null;
 
@@ -48,14 +50,14 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
     };
   }, []);
 
-  // 2. ฟังก์ชันถ่ายรูปและส่ง API
+  // ฟังก์ชันถ่ายรูปและส่ง API
   const handleScan = async () => {
     if (!videoRef.current || !canvasRef.current) return;
 
     setIsScanning(true);
 
     try {
-      // 2.1 วาดภาพจาก Video ลง Canvas
+      // วาดภาพจาก Video ลง Canvas
       const video = videoRef.current;
       const canvas = canvasRef.current;
       canvas.width = video.videoWidth;
@@ -77,11 +79,10 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
         const file = new File([blob], "captured-animal.jpg", { type: "image/jpeg" });
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('clerkId', clerkId as string);
 
         try {
           // 2.3 ส่งไปยัง NestJS API
-          // TODO: เปลี่ยน URL นี้ให้เป็น IP เครื่องจริง หรือ Domain เมื่อ Deploy
-          // ตัวอย่าง: 'https://api.yourdomain.com/ai/predict' หรือ 'http://192.168.1.xxx:3000/ai/predict'
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3100';
 
           const response = await axios.post(`${apiUrl}/ai/predict`, formData, {
@@ -113,48 +114,6 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
       setIsScanning(false);
     }
   };
-
-  // const handleScan = async () => {
-  //   if (!videoRef.current || !canvasRef.current) return;
-
-  //   setIsScanning(true);
-
-  //   try {
-  //     const video = videoRef.current;
-  //     const canvas = canvasRef.current;
-
-  //     // ตั้งขนาด canvas ให้ตรงกับ video
-  //     canvas.width = video.videoWidth;
-  //     canvas.height = video.videoHeight;
-
-  //     const context = canvas.getContext("2d");
-  //     if (!context) return;
-
-  //     // วาดรูปจาก video ลง canvas
-  //     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  //     // --- ส่วนที่แก้ไข: แปลงเป็น Data URL แทนการส่ง API ---
-  //     const capturedImageUrl = canvas.toDataURL("image/jpeg", 0.8);
-
-  //     // จำลองเวลา Scan เหมือนรอ API (เพื่อให้ User รู้สึกว่ามันกำลังวิเคราะห์)
-  //     setTimeout(() => {
-  //       setIsScanning(false);
-
-  //       // ส่งข้อมูล Mock กลับไปหน้า Home
-  //       onAnimalDetected({
-  //         name: "Mystery Animal", // ชื่อสมมติ
-  //         confidence: 0.99,
-  //         funFact: "You found this animal in the wild!",
-  //         imageUrl: capturedImageUrl, // ส่งรูปที่ถ่ายไปด้วย!
-  //       });
-
-  //       onClose();
-  //     }, 1500); // รอ 1.5 วินาที
-  //   } catch (err) {
-  //     console.error("Capture Error:", err);
-  //     setIsScanning(false);
-  //   }
-  // };
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">

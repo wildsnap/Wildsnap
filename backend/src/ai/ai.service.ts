@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
-import FormData = require('form-data');
+import FormData from 'form-data';
 import { PrismaService } from '../prisma/prisma.service';
 
 const CONFIDENCE_THRESHOLD = 85;
@@ -12,7 +12,7 @@ export class AiService {
   private AI_URL =
     process.env.GOOGLE_CLOUD_AI_URL || 'http://localhost:8000/predict';
 
-  async predict(file: Express.Multer.File) {
+  async predict(file: Express.Multer.File, clerkId: string) {
     const formData = new FormData();
 
     formData.append('file', file.buffer, {
@@ -29,6 +29,7 @@ export class AiService {
         maxBodyLength: Infinity,
       });
 
+      // Uncomment this block if you want to enforce confidence threshold (real deployment)
       // if (data.confidence < CONFIDENCE_THRESHOLD) {
       //   return {
       //     class_name: 'Unknown',
@@ -49,6 +50,28 @@ export class AiService {
           },
         },
       });
+
+      let logStatus = animal ? 'SUCCESS' : 'UNKNOWN_ANIMAL';
+      let predictedAnimalId = animal ? animal.id : null;
+
+      // Save in Table ScanLog
+      if (clerkId) {
+        const user = await this.prisma.user.findUnique({
+          where: { clerkId },
+        });
+
+        if (user) {
+          await this.prisma.scanLog.create({
+            data: {
+              userId: user.id,
+              status: logStatus,
+              predictedAnimalId: predictedAnimalId,
+              confidenceScore: data.confidence,
+              // imageUrl: null // ถ้าในอนาคตคุณอัปโหลดรูปขึ้น Cloudinary/S3 ค่อยเอาลิงก์มาใส่ตรงนี้ครับ
+            },
+          });
+        }
+      }
 
       if (!animal) {
         console.warn(`Animal ${normalizedName} found by AI but missing in DB.`);
@@ -72,8 +95,6 @@ export class AiService {
         imageUrl: animal.imageUrl,
         points_reward: animal.pointsReward,
       };
-
-      return data;
     } catch (error) {
       console.error('AI Service Connection Error:', error.message);
       if (error.response) {
