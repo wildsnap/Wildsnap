@@ -66,6 +66,7 @@ export function CollectionScreen({ onAnimalClick }: CollectionScreenProps) {
             isUnlocked: false,
             capturedAt: null,
             pointsReward: animal.pointsReward,
+            imageUrl: animal.imageUrl,
           }));
 
           setAnimals(lockedAnimals);
@@ -81,7 +82,30 @@ export function CollectionScreen({ onAnimalClick }: CollectionScreenProps) {
           const userAnimals = collectionResponse.data.animals;
           const unlockedCount = collectionResponse.data.progress.unlocked;
 
-          setAnimals(userAnimals);
+          const mergedAnimals = masterAnimals.map((masterAnimal: any) => {
+            const userUnlockedData = userAnimals.find(
+              (ua: any) => ua.id === masterAnimal.id && ua.isUnlocked,
+            );
+
+            const isUnlocked = !!userUnlockedData;
+
+            return {
+              id: masterAnimal.id,
+              name: isUnlocked ? masterAnimal.name : "???",
+              scientificName: isUnlocked ? masterAnimal.scientificName : "???",
+              description: isUnlocked
+                ? masterAnimal.description
+                : "Explore the wild to unlock this animal!",
+              habitat: isUnlocked ? masterAnimal.habitat : "Unknown",
+              rarityLevel: masterAnimal.rarityLevel,
+              imageUrl: masterAnimal.imageUrl,
+              isUnlocked: isUnlocked,
+              capturedAt: isUnlocked ? userUnlockedData.capturedAt : null,
+              pointsReward: masterAnimal.pointsReward,
+            };
+          });
+
+          setAnimals(mergedAnimals);
           setProgress({
             unlocked: unlockedCount,
             total: totalAnimals,
@@ -190,7 +214,7 @@ export function CollectionScreen({ onAnimalClick }: CollectionScreenProps) {
                         alt="Unknown"
                         width={56}
                         height={56}
-                        className="object-contain opacity-40 grayscale"
+                        className="object-contain brightness-0 opacity-70 drop-shadow-md"
                         unoptimized
                       />
                     ) : (
