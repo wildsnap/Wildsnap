@@ -193,7 +193,7 @@ export function CollectionScreen({ onAnimalClick }: CollectionScreenProps) {
               className={`
                 relative flex flex-col items-center justify-between p-2 pt-3 pb-2 
                 border-4 border-[#2C2C2C] rounded-2xl
-                transition-all duration-200 min-h-[140px] {/* กำหนดความสูงขั้นต่ำให้กล่องดูสมมาตร */}
+                transition-all duration-200 h-40 w-full
                 ${
                   !animal.isUnlocked
                     ? "bg-[#A3A3A3] cursor-not-allowed shadow-[4px_4px_0_0_rgba(0,0,0,0.2)]"
@@ -201,7 +201,7 @@ export function CollectionScreen({ onAnimalClick }: CollectionScreenProps) {
                 }
               `}
             >
-              <div className="flex-1 flex items-center justify-center w-full mb-1">
+              <div className="relative flex-1 flex items-center justify-center w-full mb-1 overflow-hidden">
                 {!animal.isUnlocked ? (
                   <>
                     <div className="absolute top-2 right-2">
@@ -231,7 +231,7 @@ export function CollectionScreen({ onAnimalClick }: CollectionScreenProps) {
                         alt={animal.name}
                         width={80}
                         height={80}
-                        className="object-contain drop-shadow-[0_4px_4px_rgba(0,0,0,0.25)] transform transition-transform group-hover:scale-110"
+                        className="object-contain drop-shadow-[0_4px_4px_rgba(0,0,0,0.25)] transform transition-transform group-hover:scale-110 max-h-full"
                         unoptimized
                       />
                     ) : (
@@ -241,13 +241,13 @@ export function CollectionScreen({ onAnimalClick }: CollectionScreenProps) {
                 )}
               </div>
 
-              <div className="w-full text-center mt-auto bg-black/5 rounded-lg py-1">
+              <div className="w-full text-center mt-auto bg-black/5 rounded-lg py-1 px-1 overflow-hidden">
                 <span className="font-['Nunito'] text-[10px] font-black text-[#2C2C2C]/60 block mb-0.5">
                   #{animal.id.toString().padStart(3, "0")}
                 </span>
 
                 {animal.isUnlocked && (
-                  <span className="font-['Nunito'] text-[11px] font-bold text-[#5C3D1F] block leading-tight px-1">
+                  <span className="font-['Nunito'] text-[11px] font-bold text-[#5C3D1F] block leading-tight truncate">
                     {animal.name}
                   </span>
                 )}
