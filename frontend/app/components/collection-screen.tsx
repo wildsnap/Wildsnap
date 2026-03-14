@@ -11,7 +11,8 @@ interface Animal {
   id: number;
   name: string;
   scientificName?: string;
-  description?: string;
+  description: string;
+  funFact: string;
   habitat?: string;
   rarityLevel: string;
   imageUrl: string | null;
@@ -101,6 +102,7 @@ export function CollectionScreen({ onAnimalClick }: CollectionScreenProps) {
               imageUrl: masterAnimal.imageUrl,
               isUnlocked: isUnlocked,
               capturedAt: isUnlocked ? userUnlockedData.capturedAt : null,
+              funFact: masterAnimal.funFact,
               pointsReward: masterAnimal.pointsReward,
             };
           });
