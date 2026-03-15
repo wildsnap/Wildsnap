@@ -65,7 +65,7 @@ export default function Home() {
 
     setCurrentAnimal(detectedAnimal);
     setShowScanScreen(false);
-    setCoins((prev) => prev + (detectedAnimal.coins || 50));
+    setCoins((prev) => prev + (detectedAnimal.coins || 0));
     setShowRewardModal(true);
   };
 
@@ -142,7 +142,9 @@ export default function Home() {
         description={currentAnimal?.description}
         habitat={currentAnimal?.habitat}
         rarityLevel={currentAnimal?.rarity}
-        coinsEarned={currentAnimal?.coins || 50}
+        coinsEarned={currentAnimal?.coins || 0}
+        isNewDiscovery={currentAnimal?.isNewDiscovery}
+        imageUrl={currentAnimal?.imageUrl}
       />
 
       <UnlockAnimation
