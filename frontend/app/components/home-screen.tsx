@@ -1,6 +1,11 @@
+"use client";
+
 import { Camera } from "lucide-react";
 import { PixelAvatar } from "./pixel-avatar";
 import img8BitGraphicsPixelsSceneWithForest from "../images/8-bit-graphics-pixels-scene-with-forest.png";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useAuth } from "@clerk/nextjs";
 
 interface HomeScreenProps {
   onScanClick: () => void;
@@ -9,6 +14,59 @@ interface HomeScreenProps {
 }
 
 export function HomeScreen({ onScanClick, coins, username }: HomeScreenProps) {
+  const { userId: clerkId, isLoaded } = useAuth();
+
+  const [stats, setStats] = useState({ unlocked: 0, total: 0 });
+  const [displayCoins, setDisplayCoins] = useState(coins);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        const apiUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3100";
+
+        const animalsRes = await axios.get(`${apiUrl}/animals`);
+        const totalAnimals = animalsRes.data.length;
+
+        let unlockedAnimals = 0;
+        let userCoins = coins;
+
+        if (clerkId) {
+          try {
+            const collectionRes = await axios.get(
+              `${apiUrl}/collections/user/${clerkId}`,
+            );
+            unlockedAnimals = collectionRes.data.progress?.unlocked || 0;
+          } catch (err) {
+            console.error("Failed to fetch collection stats", err);
+          }
+
+          try {
+            const userRes = await axios.get(`${apiUrl}/users/${clerkId}`);
+            if (userRes.data && userRes.data.currentPoints !== undefined) {
+              userCoins = userRes.data.currentPoints;
+            }
+          } catch (err) {
+            console.error("Failed to fetch user coins", err);
+          }
+        }
+
+        setStats({ unlocked: unlockedAnimals, total: totalAnimals });
+        setDisplayCoins(userCoins);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [clerkId, isLoaded, coins]);
+
   return (
     <div className="flex flex-col min-h-full relative">
       {/* Background */}
@@ -48,7 +106,7 @@ export function HomeScreen({ onScanClick, coins, username }: HomeScreenProps) {
               className="w-5 h-5 object-contain drop-shadow-sm animate-[pulse_2s_infinite]"
             />
             <span className="font-['Press_Start_2P'] text-sm text-[#2C2C2C]">
-              {coins.toLocaleString()}
+              {isLoading ? "..." : displayCoins.toLocaleString()}
             </span>
           </div>
         </div>
@@ -140,7 +198,7 @@ export function HomeScreen({ onScanClick, coins, username }: HomeScreenProps) {
         <div className="mt-6 mb-auto bg-white/90 backdrop-blur-md border-4 border-[#2C2C2C] rounded-xl px-5 py-3 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] flex items-center justify-between w-full max-w-[280px]">
           <div className="text-center flex-1">
             <div className="font-['Press_Start_2P'] text-xl text-[#FF4757] drop-shadow-sm">
-              12
+              {isLoading ? "..." : stats.unlocked}
             </div>
             <div className="font-['Nunito'] text-[10px] text-[#2C2C2C] font-black mt-1 uppercase tracking-wider">
               Unlocked
@@ -150,8 +208,9 @@ export function HomeScreen({ onScanClick, coins, username }: HomeScreenProps) {
           <div className="w-1 h-8 bg-[#2C2C2C] rounded-full opacity-20 mx-4" />
 
           <div className="text-center flex-1">
+            {/* 🌟 แสดงจำนวนสัตว์ทั้งหมดในระบบ */}
             <div className="font-['Press_Start_2P'] text-xl text-[#00A3FF] drop-shadow-sm">
-              150
+              {isLoading ? "..." : stats.total}
             </div>
             <div className="font-['Nunito'] text-[10px] text-[#2C2C2C] font-black mt-1 uppercase tracking-wider">
               Database
