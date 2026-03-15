@@ -1,3 +1,4 @@
+// layout.tsx
 import type { Metadata } from "next";
 import {
   ClerkProvider,
@@ -33,9 +34,9 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        {/* ใช้ flex flex-col h-screen เพื่อจัด layout */}
+        {/* 🌟 1. เปลี่ยน h-screen เป็น h-[100dvh] เพื่อแก้ปัญหาจอมือถือ */}
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col h-screen overflow-hidden`}
+          className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col h-[100dvh] overflow-hidden`}
         >
           {/* Header จะอยู่ติดด้านบนเสมอ */}
           <header className="flex-none flex justify-end items-center p-4 gap-4 h-16 bg-white shadow-sm z-50 relative">
@@ -53,7 +54,7 @@ export default function RootLayout({
           </header>
 
           {/* Children (ตัว App) จะยืดเต็มพื้นที่ที่เหลือ */}
-          <main className="flex-1 relative overflow-hidden bg-[#F5F8F0]">
+          <main>
             {children}
           </main>
         </body>

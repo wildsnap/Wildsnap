@@ -65,7 +65,7 @@ export default function Home() {
 
     setCurrentAnimal(detectedAnimal);
     setShowScanScreen(false);
-    setCoins((prev) => prev + (detectedAnimal.coins || 50));
+    setCoins((prev) => prev + (detectedAnimal.coins || 0));
     setShowRewardModal(true);
   };
 
@@ -93,7 +93,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative w-full h-[calc(100vh-64px)] max-w-md mx-auto bg-[#F5F8F0] overflow-hidden font-['Nunito']">
+    <div className="relative w-full h-[calc(100vh-64px)] max-w-md mx-auto overflow-hidden font-['Nunito']">
       {/* Main Content */}
       <div className={activeTab === "scan" ? "block h-full" : "hidden"}>
         <HomeScreen
@@ -142,7 +142,9 @@ export default function Home() {
         description={currentAnimal?.description}
         habitat={currentAnimal?.habitat}
         rarityLevel={currentAnimal?.rarity}
-        coinsEarned={currentAnimal?.coins || 50}
+        coinsEarned={currentAnimal?.coins || 0}
+        isNewDiscovery={currentAnimal?.isNewDiscovery}
+        imageUrl={currentAnimal?.imageUrl}
       />
 
       <UnlockAnimation
