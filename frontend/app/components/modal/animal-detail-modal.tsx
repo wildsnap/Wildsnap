@@ -1,13 +1,14 @@
-import { X, Star, MapPin, Sparkles, Coins, BookOpen } from "lucide-react";
+import { X, MapPin, Sparkles, Coins, BookOpen } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 
 interface AnimalDetailModalProps {
   animal: {
     id: number;
     name: string;
     scientificName?: string;
-    description?: string;
-    funFact?: string;
+    description: string;
+    funFact: string;
     habitat?: string;
     rarityLevel?: string;
     imageUrl?: string | null;
@@ -17,6 +18,8 @@ interface AnimalDetailModalProps {
 }
 
 export function AnimalDetailModal({ animal, onClose }: AnimalDetailModalProps) {
+  const [isFactRevealed, setIsFactRevealed] = useState(false);
+
   const getRarityTheme = (level: string = "COMMON") => {
     const upper = level.toUpperCase();
     if (upper === "UNCOMMON" || upper === "RARE") {
@@ -53,7 +56,7 @@ export function AnimalDetailModal({ animal, onClose }: AnimalDetailModalProps) {
 
   const rarityTheme = getRarityTheme(animal.rarityLevel);
   const rarityName = getMappedRarityName(animal.rarityLevel);
-  console.log("Animal data in Modal:", animal);
+
   const scientificName = animal.scientificName || "Unknown species";
   const habitat = animal.habitat || "Unknown";
   const description =
@@ -70,17 +73,6 @@ export function AnimalDetailModal({ animal, onClose }: AnimalDetailModalProps) {
     if (upper === "LEGENDARY") return "Legendary";
     return "Common";
   }
-
-  const getDirectDriveLink = (url: string | null) => {
-    if (!url) return null;
-    if (url.includes("drive.google.com/file/d/")) {
-      const match = url.match(/\/d\/(.+?)\//);
-      if (match && match[1]) {
-        return `https://drive.google.com/uc?export=view&id=${match[1]}`;
-      }
-    }
-    return url;
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
@@ -105,14 +97,16 @@ export function AnimalDetailModal({ animal, onClose }: AnimalDetailModalProps) {
 
           <div className="relative z-10 flex flex-col items-center">
             <div className="flex items-center justify-center gap-1 mb-3 bg-black/20 px-4 py-1.5 rounded-full border-2 border-white/20 backdrop-blur-sm">
-              {Array.from({ length: rarityTheme.stars }).map((_, i) => (
-                <Star
-                  key={i}
-                  className="w-4 h-4 text-[#FFC800] drop-shadow-md"
-                  fill="#FFC800"
-                  strokeWidth={0}
-                />
-              ))}
+              <div className="flex gap-0.5">
+                {Array.from({ length: rarityTheme.stars }).map((_, i) => (
+                  <img
+                    key={i}
+                    src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/star.png"
+                    alt="Rarity Star"
+                    className="w-6 h-6 object-contain drop-shadow-md"
+                  />
+                ))}
+              </div>
               <span className="font-['Press_Start_2P'] text-[10px] text-white ml-2 drop-shadow-md">
                 {rarityName.toUpperCase()}
               </span>
@@ -135,7 +129,7 @@ export function AnimalDetailModal({ animal, onClose }: AnimalDetailModalProps) {
             <div className="w-full h-full relative animate-[bounce_3s_ease-in-out_infinite]">
               {animal.imageUrl ? (
                 <Image
-                  src={getDirectDriveLink(animal.imageUrl) as string}
+                  src={animal.imageUrl}
                   alt={animal.name}
                   fill
                   className="object-contain drop-shadow-[0_8px_8px_rgba(0,0,0,0.4)]"
@@ -168,16 +162,19 @@ export function AnimalDetailModal({ animal, onClose }: AnimalDetailModalProps) {
 
         {/* 3. Information Content */}
         <div className="px-6 pt-12 pb-6 space-y-5">
-          {/* Stats Grid (Habitat & Points Reward) */}
+          {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Habitat Card */}
             <div className="bg-white border-4 border-[#2C2C2C] rounded-2xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.15)] relative overflow-hidden group hover:-translate-y-1 transition-transform">
               <div className="absolute -right-4 -top-4 opacity-10">
                 <MapPin className="w-20 h-20" />
               </div>
               <div className="flex items-center gap-2 mb-2 relative z-10">
-                <div className="bg-[#E8F5E9] p-1.5 rounded-md border-2 border-[#2C2C2C]">
-                  <MapPin className="w-4 h-4 text-[#4CAF50]" strokeWidth={3} />
+                <div className="bg-[#E8F5E9] p-1 rounded-md border-2 border-[#2C2C2C]">
+                  <img
+                    src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/mappin.png"
+                    alt="MapPin"
+                    className="w-7 h-7 object-contain drop-shadow-md"
+                  />
                 </div>
                 <span className="font-['Press_Start_2P'] text-[10px] text-[#754F26]">
                   HABITAT
@@ -188,14 +185,17 @@ export function AnimalDetailModal({ animal, onClose }: AnimalDetailModalProps) {
               </p>
             </div>
 
-            {/* Reward Points Card (แทนที่ Diet) */}
             <div className="bg-white border-4 border-[#2C2C2C] rounded-2xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.15)] relative overflow-hidden group hover:-translate-y-1 transition-transform">
               <div className="absolute -right-4 -top-4 opacity-10">
                 <Coins className="w-20 h-20" />
               </div>
               <div className="flex items-center gap-2 mb-2 relative z-10">
-                <div className="bg-[#FFF8E1] p-1.5 rounded-md border-2 border-[#2C2C2C]">
-                  <Coins className="w-4 h-4 text-[#FFC800]" strokeWidth={3} />
+                <div className="bg-[#FFF8E1] p-1 rounded-md border-2 border-[#2C2C2C]">
+                  <img
+                    src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/coin.png"
+                    alt="Coin"
+                    className="w-7 h-7 object-contain drop-shadow-md"
+                  />
                 </div>
                 <span className="font-['Press_Start_2P'] text-[10px] text-[#754F26]">
                   REWARD
@@ -207,10 +207,13 @@ export function AnimalDetailModal({ animal, onClose }: AnimalDetailModalProps) {
             </div>
           </div>
 
-          {/* Description Section */}
           <div className="bg-white border-4 border-[#2C2C2C] rounded-2xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.15)]">
             <div className="flex items-center gap-2 mb-2">
-              <BookOpen className="w-4 h-4 text-[#00D66F]" strokeWidth={3} />
+              <img
+                src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/book.png"
+                alt="Book"
+                className="w-7 h-7 object-contain drop-shadow-md"
+              />
               <h3 className="font-['Press_Start_2P'] text-[10px] text-[#2C2C2C]">
                 DESCRIPTION
               </h3>
@@ -220,18 +223,44 @@ export function AnimalDetailModal({ animal, onClose }: AnimalDetailModalProps) {
             </p>
           </div>
 
-          {/* Fun Fact Note */}
-          <div className="relative bg-[#FFF9C4] border-4 border-[#2C2C2C] rounded-2xl p-5 shadow-[4px_4px_0_0_rgba(0,0,0,0.15)]">
+          <div
+            onClick={() => setIsFactRevealed(true)}
+            className={`relative border-4 border-[#2C2C2C] rounded-2xl p-5 shadow-[4px_4px_0_0_rgba(0,0,0,0.15)] transition-all duration-300 select-none ${
+              isFactRevealed
+                ? "bg-[#FFF9C4] cursor-default"
+                : "bg-[#2C2C2C] cursor-pointer hover:-translate-y-1 active:scale-95 active:translate-y-0"
+            }`}
+          >
             <div className="absolute -top-3 -left-3 w-6 h-6 bg-[#FF4757] border-2 border-[#2C2C2C] rounded-full shadow-sm z-10" />
-            <div className="flex items-center gap-2 mb-3 border-b-2 border-[#2C2C2C]/10 pb-2">
-              <Sparkles className="w-5 h-5 text-[#FF9800]" />
-              <h3 className="font-['Press_Start_2P'] text-[11px] text-[#2C2C2C]">
-                FUN FACT
-              </h3>
-            </div>
-            <p className="font-['Nunito'] text-sm text-[#5C3D1F] font-bold leading-relaxed italic">
-              "{funFact}"
-            </p>
+
+            {!isFactRevealed ? (
+              <div className="flex flex-col items-center justify-center py-4">
+                <span className="text-4xl animate-bounce mb-3 drop-shadow-md">
+                  <img
+                    src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/question.png"
+                    alt="Fun Fact"
+                    className="w-10 h-10 object-contain drop-shadow-md"
+                  />
+                </span>
+                <h3 className="font-['Press_Start_2P'] text-[10px] text-[#FFC800] text-center leading-loose tracking-widest">
+                  TAP TO REVEAL
+                  <br />
+                  FUN FACT!
+                </h3>
+              </div>
+            ) : (
+              <div className="animate-[fadeIn_0.4s_ease-out]">
+                <div className="flex items-center gap-2 mb-3 border-b-2 border-[#2C2C2C]/10 pb-2">
+                  <Sparkles className="w-5 h-5 text-[#FF9800] animate-[spin_3s_linear_infinite]" />
+                  <h3 className="font-['Press_Start_2P'] text-[11px] text-[#2C2C2C]">
+                    FUN FACT UNLOCKED!
+                  </h3>
+                </div>
+                <p className="font-['Nunito'] text-sm text-[#5C3D1F] font-bold leading-relaxed italic animate-[slideUp_0.3s_ease-out]">
+                  "{funFact}"
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
