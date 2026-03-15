@@ -65,7 +65,7 @@ export default function Home() {
 
     setCurrentAnimal(detectedAnimal);
     setShowScanScreen(false);
-    setCoins((prev) => prev + (detectedAnimal.coins || 50));
+    setCoins((prev) => prev + (detectedAnimal.coins || 0));
     setShowRewardModal(true);
   };
 
@@ -93,30 +93,30 @@ export default function Home() {
   };
 
   return (
-    <div className="relative w-full h-[calc(100vh-64px)] max-w-md mx-auto bg-[#F5F8F0] overflow-hidden font-['Nunito']">
+    <div className="relative w-full h-[calc(100vh-64px)] max-w-md mx-auto overflow-hidden font-['Nunito']">
       {/* Main Content */}
-      <div className="h-full overflow-y-auto pb-20">
-        {activeTab === "scan" && (
-          <HomeScreen
-            onScanClick={handleScanClick}
-            coins={coins}
-            username="Explorer"
-          />
-        )}
-        {activeTab === "collection" && (
-          <CollectionScreen onAnimalClick={handleAnimalClick} />
-        )}
-        {activeTab === "avatar" && (
-          <AvatarScreen
-            username="Explorer"
-            level={5}
-            totalAnimals={12}
-            achievements={8}
-          />
-        )}
-        {activeTab === "shop" && (
-          <ShopScreen userCoins={coins} onPurchase={handlePurchase} />
-        )}
+      <div className={activeTab === "scan" ? "block h-full" : "hidden"}>
+        <HomeScreen
+          onScanClick={handleScanClick}
+          coins={coins}
+          username="Explorer"
+        />
+      </div>
+      <div className={activeTab === "collection" ? "block h-full" : "hidden"}>
+        <CollectionScreen onAnimalClick={handleAnimalClick} />
+      </div>
+
+      <div className={activeTab === "avatar" ? "block h-full" : "hidden"}>
+        <AvatarScreen
+          username="Explorer"
+          level={5}
+          totalAnimals={12}
+          achievements={8}
+        />
+      </div>
+
+      <div className={activeTab === "shop" ? "block h-full" : "hidden"}>
+        <ShopScreen userCoins={coins} onPurchase={handlePurchase} />
       </div>
 
       {/* Bottom Navigation */}
@@ -142,7 +142,9 @@ export default function Home() {
         description={currentAnimal?.description}
         habitat={currentAnimal?.habitat}
         rarityLevel={currentAnimal?.rarity}
-        coinsEarned={currentAnimal?.coins || 50}
+        coinsEarned={currentAnimal?.coins || 0}
+        isNewDiscovery={currentAnimal?.isNewDiscovery}
+        imageUrl={currentAnimal?.imageUrl}
       />
 
       <UnlockAnimation

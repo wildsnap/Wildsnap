@@ -8,11 +8,13 @@ import {
   BadRequestException,
   UseGuards,
   Get,
+  Param,
+  NotFoundException, 
 } from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
 import { Webhook } from 'svix';
-import { UsersService } from '../users/users.service';
+import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
@@ -21,6 +23,17 @@ export class UsersController {
   @Get('profile')
   getProfile() {
     return this.userService.findUserById(1);
+  }
+
+  @Get(':clerkId')
+  async getUserByClerkId(@Param('clerkId') clerkId: string) {
+    const user = await this.userService.findOneByClerkId(clerkId);
+    
+    if (!user) {
+      throw new NotFoundException(`ไม่พบข้อมูลผู้ใช้รหัส ${clerkId}`);
+    }
+    
+    return user;
   }
 
   @Post('webhooks/clerk')
