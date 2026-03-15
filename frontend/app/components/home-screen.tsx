@@ -2,7 +2,6 @@
 
 import { Camera } from "lucide-react";
 import { PixelAvatar } from "./pixel-avatar";
-import img8BitGraphicsPixelsSceneWithForest from "../images/8-bit-graphics-pixels-scene-with-forest.png";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "@clerk/nextjs";
@@ -70,9 +69,9 @@ export function HomeScreen({ onScanClick, coins, username }: HomeScreenProps) {
   return (
     <div className="flex flex-col min-h-full relative">
       {/* Background */}
-      <div className="fixed inset-0 -z-10 bg-[#87CEEB]">
+      <div className="fixed inset-0 -z-10">
         <img
-          src={img8BitGraphicsPixelsSceneWithForest.src as string}
+          src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/home_bg.png"
           alt="Forest Background"
           className="w-full h-full object-cover opacity-90"
         />
@@ -213,7 +212,7 @@ export function HomeScreen({ onScanClick, coins, username }: HomeScreenProps) {
               {isLoading ? "..." : stats.total}
             </div>
             <div className="font-['Nunito'] text-[10px] text-[#2C2C2C] font-black mt-1 uppercase tracking-wider">
-              Database
+              Total
             </div>
           </div>
         </div>

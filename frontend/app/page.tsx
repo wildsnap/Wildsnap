@@ -93,7 +93,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative w-full h-[calc(100vh-64px)] max-w-md mx-auto bg-[#F5F8F0] overflow-hidden font-['Nunito']">
+    <div className="relative w-full h-[calc(100vh-64px)] max-w-md mx-auto overflow-hidden font-['Nunito']">
       {/* Main Content */}
       <div className={activeTab === "scan" ? "block h-full" : "hidden"}>
         <HomeScreen
