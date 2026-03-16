@@ -37,6 +37,7 @@ export default function Home() {
   const [currentAnimal, setCurrentAnimal] = useState<AnimalData | null>(null);
 
   const [showUnlockAnimation, setShowUnlockAnimation] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleScanClick = () => {
     setShowScanScreen(true);
@@ -66,6 +67,12 @@ export default function Home() {
     setCurrentAnimal(detectedAnimal);
     setShowScanScreen(false);
     setCoins((prev) => prev + (detectedAnimal.coins || 0));
+
+    if (data.isNewDiscovery) {
+      setCoins((prev) => prev + (detectedAnimal.coins || 0));
+      setRefreshTrigger((prev) => prev + 1);
+    }
+
     setShowRewardModal(true);
   };
 
@@ -89,7 +96,7 @@ export default function Home() {
 
   const handleUnlockComplete = () => {
     setShowUnlockAnimation(false);
-    setCurrentAnimal(null); 
+    setCurrentAnimal(null);
   };
 
   return (
@@ -100,10 +107,14 @@ export default function Home() {
           onScanClick={handleScanClick}
           coins={coins}
           username="Explorer"
+          refreshTrigger={refreshTrigger}
         />
       </div>
       <div className={activeTab === "collection" ? "block h-full" : "hidden"}>
-        <CollectionScreen onAnimalClick={handleAnimalClick} />
+        <CollectionScreen
+          onAnimalClick={handleAnimalClick}
+          refreshTrigger={refreshTrigger}
+        />
       </div>
 
       <div className={activeTab === "avatar" ? "block h-full" : "hidden"}>
@@ -151,7 +162,7 @@ export default function Home() {
         isOpen={showUnlockAnimation}
         onComplete={handleUnlockComplete}
         animalName={currentAnimal?.name || "Unknown"}
-        rarityLevel={(currentAnimal?.rarity as any) || "Common"} 
+        rarityLevel={(currentAnimal?.rarity as any) || "Common"}
         imageUrl={currentAnimal?.imageUrl}
       />
     </div>
