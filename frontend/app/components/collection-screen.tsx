@@ -28,9 +28,10 @@ interface Progress {
 
 interface CollectionScreenProps {
   onAnimalClick: (id: number) => void;
+  refreshTrigger?: number;
 }
 
-export function CollectionScreen({ onAnimalClick }: CollectionScreenProps) {
+export function CollectionScreen({ onAnimalClick, refreshTrigger = 0 }: CollectionScreenProps) {
   const { userId: clerkId, isLoaded } = useAuth();
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [progress, setProgress] = useState<Progress>({
@@ -128,7 +129,7 @@ export function CollectionScreen({ onAnimalClick }: CollectionScreenProps) {
     };
 
     fetchCollection();
-  }, [clerkId, isLoaded]);
+  }, [clerkId, isLoaded, refreshTrigger]);
 
   if (isLoading) {
     return (

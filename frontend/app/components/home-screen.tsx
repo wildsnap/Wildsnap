@@ -10,9 +10,10 @@ interface HomeScreenProps {
   onScanClick: () => void;
   coins: number;
   username: string;
+  refreshTrigger?: number;
 }
 
-export function HomeScreen({ onScanClick, coins, username }: HomeScreenProps) {
+export function HomeScreen({ onScanClick, coins, username, refreshTrigger = 0 }: HomeScreenProps) {
   const { userId: clerkId, isLoaded } = useAuth();
 
   const [stats, setStats] = useState({ unlocked: 0, total: 0 });
@@ -64,7 +65,7 @@ export function HomeScreen({ onScanClick, coins, username }: HomeScreenProps) {
     };
 
     fetchDashboardData();
-  }, [clerkId, isLoaded, coins]);
+  }, [clerkId, isLoaded, coins, refreshTrigger]);
 
   return (
     <div className="flex flex-col min-h-full relative">
