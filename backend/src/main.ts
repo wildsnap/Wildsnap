@@ -5,12 +5,13 @@ import 'dotenv/config';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
 
 const server = express();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server), {
-    rawBody: true
+    rawBody: true,
   });
 
   const config = new DocumentBuilder()
@@ -24,13 +25,21 @@ async function bootstrap() {
     jsonDocumentUrl: 'swagger/json',
   });
 
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // Strips away properties that don't have decorators in the DTO
+      forbidNonWhitelisted: true, // Throws an error if unknown properties are sent
+      transform: true, // Automatically transforms payloads to be objects typed according to DTOs
+    }),
+  );
+
   app.enableCors({
     // origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
     origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
-  
+
   app.use(cookieParser());
   app.enableShutdownHooks();
 
@@ -40,7 +49,6 @@ async function bootstrap() {
     await app.init();
   }
 }
-
 
 bootstrap();
 
