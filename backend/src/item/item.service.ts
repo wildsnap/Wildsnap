@@ -28,26 +28,42 @@ export class ItemService {
     const { clerkId, itemId } = dto;
 
     return this.prisma.$transaction(async (tx) => {
-      // 1. Check if item exists
-      const item = await tx.item.findUnique({ where: { id: itemId } });
-      if (!item) throw new NotFoundException('Item not found');
+      // 1. Fetch item and user in parallel to save time (optional but faster)
+      const [item, user] = await Promise.all([
+        tx.item.findUnique({ where: { id: itemId } }),
+        tx.user.findUnique({ where: { clerkId } }),
+      ]);
 
-      // 2. Check user
-      const user = await tx.user.findUnique({ where: { clerkId: clerkId } });
-      if (!user || user.currentPoints < item.price) {
+      if (!item) throw new NotFoundException('Item not found');
+      if (!user) throw new NotFoundException('User not found');
+
+      // 2. NEW: Check if user already owns this item
+      const existingRecord = await tx.userInventory.findFirst({
+        where: {
+          userId: user.id,
+          itemId: itemId,
+        },
+      });
+
+      if (existingRecord) {
+        throw new BadRequestException('You already own this item');
+      }
+
+      // 3. Check points
+      if (user.currentPoints < item.price) {
         throw new BadRequestException('Insufficient points');
       }
 
-      // 3. Deduct points and GET the updated user
+      // 4. Deduct points
       const updatedUser = await tx.user.update({
-        where: { clerkId: clerkId },
+        where: { clerkId },
         data: { currentPoints: { decrement: item.price } },
       });
 
-      // 4. Create inventory record
+      // 5. Create inventory record
       const inventory = await tx.userInventory.create({
         data: {
-          user: { connect: { clerkId: clerkId } },
+          user: { connect: { clerkId } },
           item: { connect: { id: itemId } },
         },
         include: { item: true },
