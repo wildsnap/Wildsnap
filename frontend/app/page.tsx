@@ -8,6 +8,7 @@ import { RewardModal } from "./components/reward-modal";
 import { AvatarScreen } from "./components/avatar-screen";
 import { ShopScreen } from "./components/shop-screen";
 import { UnlockAnimation } from "./components/animations/unlock-animation";
+import { useCoin } from "./components/providers/CoinContext"
 
 interface AnimalData {
   name: string;
@@ -24,26 +25,23 @@ interface AnimalData {
 }
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<
-    "scan" | "collection" | "avatar" | "shop"
-  >("scan");
+  const [activeTab, setActiveTab] = useState<"scan" | "collection" | "avatar" | "shop">("scan");
 
-  // State สำหรับ Modal และ Screen
+  // State for UI Visibility
   const [showScanScreen, setShowScanScreen] = useState(false);
   const [showRewardModal, setShowRewardModal] = useState(false);
-
-  // State ข้อมูล
-  const [coins, setCoins] = useState(300);
-  const [currentAnimal, setCurrentAnimal] = useState<AnimalData | null>(null);
-
   const [showUnlockAnimation, setShowUnlockAnimation] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Data State
+  const { coins, setCoins } = useCoin();
+  const [currentAnimal, setCurrentAnimal] = useState<AnimalData | null>(null);
 
   const handleScanClick = () => {
     setShowScanScreen(true);
   };
 
-  // รับ data จาก ScanScreen
+  // Logic for Scanning/Detecting Animals
   const handleAnimalDetected = (data: any) => {
     if (data.class_name === "Unknown") {
       alert("ไม่สามารถระบุชนิดสัตว์ได้ กรุณาลองถ่ายใหม่อีกครั้งให้ชัดเจนขึ้น");
@@ -76,17 +74,18 @@ export default function Home() {
     setShowRewardModal(true);
   };
 
+  // NEW: Logic to handle successful purchases from ShopScreen
+  const handlePurchaseSuccess = (newBalance: number) => {
+    console.log("Updating coins to:", newBalance);
+    setCoins(newBalance);
+  };
+
   const handleAnimalClick = (id: number) => {
     console.log("Animal clicked:", id);
   };
 
-  const handlePurchase = (itemId: number) => {
-    console.log("Purchase item:", itemId);
-  };
-
   const handleRewardModalClose = () => {
     setShowRewardModal(false);
-
     if (currentAnimal?.isNewDiscovery) {
       setShowUnlockAnimation(true);
     } else {
@@ -100,16 +99,13 @@ export default function Home() {
   };
 
   return (
-    <div className="relative w-full h-[calc(100vh-64px)] max-w-md mx-auto overflow-hidden font-['Nunito']">
-      {/* Main Content */}
+    <div className="relative w-full h-[calc(100vh-64px)] max-w-md mx-auto bg-[#F5F8F0] overflow-hidden font-['Nunito']">
+      
+      {/* Screens Controlled by Tabs */}
       <div className={activeTab === "scan" ? "block h-full" : "hidden"}>
-        <HomeScreen
-          onScanClick={handleScanClick}
-          coins={coins}
-          username="Explorer"
-          refreshTrigger={refreshTrigger}
-        />
+        <HomeScreen onScanClick={handleScanClick} username="Explorer" />
       </div>
+
       <div className={activeTab === "collection" ? "block h-full" : "hidden"}>
         <CollectionScreen
           onAnimalClick={handleAnimalClick}
@@ -126,14 +122,18 @@ export default function Home() {
         />
       </div>
 
+      {/* UPDATED: Shop Screen implementation */}
       <div className={activeTab === "shop" ? "block h-full" : "hidden"}>
-        <ShopScreen userCoins={coins} onPurchase={handlePurchase} />
+        <ShopScreen 
+          userCoins={coins} 
+          onPurchaseSuccess={handlePurchaseSuccess} 
+        />
       </div>
 
-      {/* Bottom Navigation */}
+      {/* Navigation Overlay */}
       <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {/* Scan Screen Overlay */}
+      {/* Modals & Animations */}
       {showScanScreen && (
         <ScanScreen
           onClose={() => setShowScanScreen(false)}
@@ -141,7 +141,6 @@ export default function Home() {
         />
       )}
 
-      {/* Reward Modal */}
       <RewardModal
         isOpen={showRewardModal}
         onClose={handleRewardModalClose}

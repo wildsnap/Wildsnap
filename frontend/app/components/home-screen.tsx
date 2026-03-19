@@ -8,16 +8,14 @@ import { useAuth } from "@clerk/nextjs";
 
 interface HomeScreenProps {
   onScanClick: () => void;
-  coins: number;
   username: string;
   refreshTrigger?: number;
 }
 
-export function HomeScreen({ onScanClick, coins, username, refreshTrigger = 0 }: HomeScreenProps) {
+export function HomeScreen({ onScanClick, username }: HomeScreenProps) {
   const { userId: clerkId, isLoaded } = useAuth();
 
   const [stats, setStats] = useState({ unlocked: 0, total: 0 });
-  const [displayCoins, setDisplayCoins] = useState(coins);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -33,7 +31,6 @@ export function HomeScreen({ onScanClick, coins, username, refreshTrigger = 0 }:
         const totalAnimals = animalsRes.data.length;
 
         let unlockedAnimals = 0;
-        let userCoins = coins;
 
         if (clerkId) {
           try {
@@ -44,19 +41,9 @@ export function HomeScreen({ onScanClick, coins, username, refreshTrigger = 0 }:
           } catch (err) {
             console.error("Failed to fetch collection stats", err);
           }
-
-          try {
-            const userRes = await axios.get(`${apiUrl}/users/${clerkId}`);
-            if (userRes.data && userRes.data.currentPoints !== undefined) {
-              userCoins = userRes.data.currentPoints;
-            }
-          } catch (err) {
-            console.error("Failed to fetch user coins", err);
-          }
         }
 
         setStats({ unlocked: unlockedAnimals, total: totalAnimals });
-        setDisplayCoins(userCoins);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       } finally {
@@ -65,7 +52,7 @@ export function HomeScreen({ onScanClick, coins, username, refreshTrigger = 0 }:
     };
 
     fetchDashboardData();
-  }, [clerkId, isLoaded, coins, refreshTrigger]);
+  }, [clerkId, isLoaded]);
 
   return (
     <div className="flex flex-col min-h-full relative">
@@ -97,17 +84,6 @@ export function HomeScreen({ onScanClick, coins, username, refreshTrigger = 0 }:
                 Explorer
               </p>
             </div>
-          </div>
-
-          <div className="flex items-center gap-2 bg-[#FFFDF5] border-4 border-[#2C2C2C] rounded-full px-4 py-2 shadow-[4px_4px_0_0_rgba(0,0,0,0.3)]">
-            <img
-              src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/coin.png"
-              alt="Coin"
-              className="w-5 h-5 object-contain drop-shadow-sm animate-[pulse_2s_infinite]"
-            />
-            <span className="font-['Press_Start_2P'] text-sm text-[#2C2C2C]">
-              {isLoading ? "..." : displayCoins.toLocaleString()}
-            </span>
           </div>
         </div>
       </header>

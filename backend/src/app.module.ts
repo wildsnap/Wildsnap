@@ -10,6 +10,7 @@ import { AiModule } from './ai/ai.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { CollectionsModule } from './collections/collections.module';
 import { AnimalsModule } from './animals/animals.module';
+import { ItemModule } from './item/item.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AnimalsModule } from './animals/animals.module';
     ClerkModule,
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
+    ItemModule,
   ],
   controllers: [AppController],
   providers: [AppService, UsersService],
