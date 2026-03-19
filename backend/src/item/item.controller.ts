@@ -9,6 +9,8 @@ import {
   Query,
   BadRequestException,
   ParseEnumPipe,
+  Request,
+  Logger
 } from '@nestjs/common';
 import { ItemService } from './item.service';
 import { PurchaseItemDto } from './dto/purchaseData.dto';
@@ -38,5 +40,16 @@ export class ItemController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.itemService.findOne(+id);
+  }
+
+  @Get('my-items/:category')
+  async getMyItems(
+    @Request() req,
+    @Param('category', new ParseEnumPipe(ItemType)) category: ItemType,
+  ) {
+    // If req.user is undefined, this next line will crash the route
+    const userId = req.user?.id; 
+    
+    return this.itemService.findOwnItems(userId, category);
   }
 }

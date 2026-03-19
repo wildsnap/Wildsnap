@@ -75,4 +75,19 @@ export class ItemService {
       };
     });
   }
+
+  async findOwnItems(userId: number, type?: ItemType) {
+    return this.prisma.userInventory.findMany({
+      where: {
+        userId: userId,
+        item: type ? { type: type } : {},
+      },
+      include: {
+        item: true,
+      },
+      orderBy: {
+        purchasedAt: 'desc',
+      },
+    });
+  }
 }
