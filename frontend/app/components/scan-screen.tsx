@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Zap, ZoomIn, ZoomOut } from "lucide-react";
+import { X, Zap, ZoomIn, ZoomOut, CameraOff } from "lucide-react"; // 🌟 เพิ่มไอคอน CameraOff
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "@clerk/nextjs";
@@ -174,15 +174,37 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
           className="absolute inset-0 w-full h-full object-cover"
         />
 
+        {/* 🌟 ปรับปรุงหน้าต่างแจ้งเตือนกล้องพัง (Camera Error UI) */}
         {cameraError && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-50 text-white p-4 text-center">
-            <p>{cameraError}</p>
-            <button
-              onClick={onClose}
-              className="mt-4 bg-red-500 px-4 py-2 rounded"
-            >
-              Close
-            </button>
+          <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-md z-50 p-6">
+            <div className="bg-[#FFFDF5] border-4 border-[#2C2C2C] rounded-2xl w-full max-w-sm p-6 flex flex-col items-center text-center shadow-[8px_8px_0_0_rgba(0,0,0,0.5)] animate-[slideUp_0.3s_ease-out]">
+              <div className="w-16 h-16 bg-[#FF4757] border-4 border-[#2C2C2C] rounded-full flex items-center justify-center mb-4 shadow-inner">
+                <CameraOff className="w-8 h-8 text-white" strokeWidth={3} />
+              </div>
+
+              <h2 className="font-['Press_Start_2P'] text-[#2C2C2C] text-sm leading-relaxed mb-3 drop-shadow-sm">
+                CAMERA ACCESS DENIED
+              </h2>
+
+              <div className="bg-[#F5F5F5] border-2 border-[#E0E0E0] rounded-xl p-3 mb-6 w-full">
+                <p className="font-['Nunito'] text-[#FF4757] font-black text-sm mb-1">
+                  {cameraError}
+                </p>
+                <p className="font-['Nunito'] text-[#757575] font-bold text-xs leading-tight">
+                  โปรดอนุญาตการเข้าถึงกล้องในตั้งค่าเบราว์เซอร์หรือมือถือของคุณเพื่อเล่นเกมต่อ
+                </p>
+              </div>
+
+              <button
+                onClick={onClose}
+                className="w-full bg-[#FFC800] hover:bg-[#FFD54F] border-4 border-[#2C2C2C] rounded-xl py-3 shadow-[4px_4px_0_0_rgba(0,0,0,0.3)] active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2"
+              >
+                <X className="w-4 h-4 text-[#2C2C2C]" strokeWidth={4} />
+                <span className="font-['Press_Start_2P'] text-xs text-[#2C2C2C] pt-1">
+                  GO BACK
+                </span>
+              </button>
+            </div>
           </div>
         )}
 
