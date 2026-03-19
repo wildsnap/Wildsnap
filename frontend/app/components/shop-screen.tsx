@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Loader2, Ghost, Check, AlertCircle } from "lucide-react";
+import { Loader2, Ghost, Check, AlertCircle, Package } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
+import { InventoryScreen } from "./inventory-screen";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3100";
 
@@ -32,6 +33,7 @@ export function ShopScreen({
   const [ownedItemIds, setOwnedItemIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [purchasingItemId, setPurchasingItemId] = useState<number | null>(null);
+  const [viewMode, setViewMode] = useState<"shop" | "inventory">("shop");
 
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
@@ -110,11 +112,8 @@ export function ShopScreen({
       if (response.ok) {
         if (result.remainingPoints !== undefined) {
           onPurchaseSuccess(result.remainingPoints);
-
           setOwnedItemIds((prev) => [...prev, itemId]);
-
           const purchasedItem = items.find((item) => item.id === itemId);
-
           setModalState({
             isOpen: true,
             type: "success",
@@ -152,42 +151,65 @@ export function ShopScreen({
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-[0.03] bg-[repeating-linear-gradient(45deg,#000,#000_2px,transparent_2px,transparent_6px)] z-0 pointer-events-none" />
 
+      {/* Header */}
       <header className="bg-[#5C3D1F] border-b-4 border-[#2C2C2C] relative z-20 shadow-[0_4px_0_0_rgba(0,0,0,0.2)]">
-        {/* กันสาดร้านค้า */}
         <div className="absolute top-0 left-0 right-0 h-2 bg-[repeating-linear-gradient(90deg,#FF4757_0px,#FF4757_20px,#FFF_20px,#FFF_40px)] opacity-80" />
-
         <div className="px-4 pt-5 pb-4 max-w-md mx-auto">
-          {/* Tab Buttons */}
-          <div className="flex gap-3">
-            {(["character", "pet"] as const).map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveTab(cat)}
-                className={`flex-1 border-3 border-[#2C2C2C] rounded-xl py-2.5 flex items-center justify-center gap-2 transition-all duration-200 shadow-[2px_2px_0_0_rgba(0,0,0,0.3)]
-                  ${
-                    activeTab === cat
-                      ? "bg-[#FFC800] text-[#2C2C2C] translate-y-0.5 shadow-none"
-                      : "bg-[#8B6332] text-white hover:bg-[#9c6f37] active:translate-y-0.5 active:shadow-none"
-                  }`}
-              >
-                {cat === "character" ? (
-                  <img
-                    src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/human_shadow.png"
-                    alt="Character"
-                    className={`w-5 h-5 ${activeTab !== cat && "brightness-0 invert opacity-70"}`}
-                  />
-                ) : (
-                  <img
-                    src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/animal_footprint_shadow.png"
-                    alt="Pet"
-                    className={`w-5 h-5 ${activeTab !== cat && "brightness-0 invert opacity-70"}`}
-                  />
-                )}
-                <span className="font-['Press_Start_2P'] text-[9px] uppercase pt-0.5">
-                  {cat}
-                </span>
-              </button>
-            ))}
+          <div className="flex gap-2">
+            <div className="flex flex-1 gap-2">
+              {(["character", "pet"] as const).map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveTab(cat)}
+                  className={`flex-1 border-3 border-[#2C2C2C] rounded-xl py-2 flex items-center justify-center gap-1.5 transition-all duration-200 shadow-[2px_2px_0_0_rgba(0,0,0,0.3)]
+                    ${
+                      activeTab === cat
+                        ? "bg-[#FFC800] text-[#2C2C2C] translate-y-0.5 shadow-none"
+                        : "bg-[#8B6332] text-white hover:bg-[#9c6f37] active:translate-y-0.5 active:shadow-none"
+                    }`}
+                >
+                  {cat === "character" ? (
+                    <img
+                      src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/human_shadow.png"
+                      alt="Character"
+                      className={`w-4 h-4 ${activeTab !== cat && "brightness-0 invert opacity-70"}`}
+                    />
+                  ) : (
+                    <img
+                      src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/animal_footprint_shadow.png"
+                      alt="Pet"
+                      className={`w-4 h-4 ${activeTab !== cat && "brightness-0 invert opacity-70"}`}
+                    />
+                  )}
+                  <span className="font-['Press_Start_2P'] text-xs uppercase pt-0.5">
+                    {cat}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() =>
+                setViewMode((prev) => (prev === "shop" ? "inventory" : "shop"))
+              }
+              className={`w-14 flex flex-col items-center justify-center border-3 border-[#2C2C2C] rounded-xl transition-all duration-200 shadow-[2px_2px_0_0_rgba(0,0,0,0.3)]
+              ${
+                viewMode === "inventory"
+                  ? "bg-[#00D66F] text-white translate-y-0.5 shadow-none"
+                  : "bg-[#4CAF50] text-white hover:bg-[#43A047] active:translate-y-0.5 active:shadow-none"
+              }`}
+            >
+              <img
+                src={
+                  viewMode === "inventory"
+                    ? "https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/bag_open.png"
+                    : "https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/bag_close.png"
+                }
+                alt={viewMode === "inventory" ? "Bag Open" : "Bag Closed"}
+                className="w-5 h-5 mb-0.5 object-contain drop-shadow-sm"
+              />
+              <span className="text-xs">BAG</span>
+            </button>
           </div>
         </div>
       </header>
@@ -198,12 +220,14 @@ export function ShopScreen({
             <div className="flex flex-col items-center justify-center py-20 opacity-70">
               <Loader2 className="animate-spin w-10 h-10 text-[#FF9800] mb-4" />
               <p className="font-['Press_Start_2P'] text-[10px] text-[#754F26]">
-                STOCKING SHELVES...
+                {viewMode === "shop" ? "STOCKING SHELVES..." : "OPENING BAG..."}
               </p>
             </div>
+          ) : viewMode === "inventory" ? (
+            <InventoryScreen items={items} ownedItemIds={ownedItemIds} />
           ) : items.length > 0 ? (
             <>
-              {/* SPECIAL PICK --- */}
+              {/* SPECIAL PICK */}
               {specialItem && (
                 <div className="relative animate-[slideUp_0.4s_ease-out]">
                   <div className="absolute -top-4 left-4 z-10 bg-[#FF4757] border-3 border-[#2C2C2C] rounded-full px-4 py-1.5 shadow-[3px_3px_0_0_rgba(0,0,0,0.3)] shadow-[0_0_10px_rgba(255,71,87,0.7)] transition-transform">
@@ -245,7 +269,6 @@ export function ShopScreen({
                         </div>
                       </div>
 
-                      {/* Special Item Button */}
                       {(() => {
                         const isOwned = ownedItemIds.includes(specialItem.id);
                         const canAfford = userCoins >= specialItem.price;
@@ -291,7 +314,7 @@ export function ShopScreen({
                 </div>
               )}
 
-              {/* --- 🌟 REGULAR GRID --- */}
+              {/* REGULAR GRID (Shop) */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
                 {regularItems.map((item, idx) => {
                   const isOwned = ownedItemIds.includes(item.id);
@@ -308,7 +331,6 @@ export function ShopScreen({
                         animationFillMode: "both",
                       }}
                     >
-                      {/* Item Image Box */}
                       <div
                         className={`w-full aspect-square rounded-xl flex items-center justify-center mb-3 border-2 relative overflow-hidden
                         ${isOwned ? "bg-[#D3F9E5] border-[#86EFAC]" : "bg-[#F5F8F0] border-[#E2E8F0]"}`}
@@ -326,13 +348,13 @@ export function ShopScreen({
                             {item.imageUrl || "📦"}
                           </span>
                         )}
-                        {/* Sold Out Stamp */}
+
                         {isOwned && (
                           <div className="absolute inset-0 bg-white/20 flex items-center justify-center">
                             <img
                               src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/sale_sign.png"
                               alt="Sold Sign"
-                              className="w-16 h-16 object-contain drop-shadow-md"
+                              className="w-16 h-16 object-contain rotate-[15deg] drop-shadow-md"
                             />
                           </div>
                         )}
@@ -346,7 +368,6 @@ export function ShopScreen({
                           {item.name}
                         </p>
 
-                        {/* Action Button */}
                         <button
                           disabled={isOwned || !canAfford || isPurchasing}
                           onClick={() => handlePurchase(item.id)}
@@ -403,16 +424,15 @@ export function ShopScreen({
         </div>
       </main>
 
-      {/* --- 🌟 PURCHASE MODAL --- */}
+      {/* --- PURCHASE MODAL --- */}
       {modalState.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          {/* ... (โค้ด Modal แจ้งเตือนหลังกดซื้อ เหมือนเดิมเป๊ะ) ... */}
           <div className="bg-[#FFFDF5] border-4 border-[#2C2C2C] rounded-2xl p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] max-w-sm w-full text-center flex flex-col items-center animate-in zoom-in-95 duration-200 relative overflow-hidden">
-            {/* Confetti Background for Success */}
             {modalState.type === "success" && (
               <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,#FFC800_0,#FFFDF5_100%)] animate-[pulse_2s_infinite]" />
             )}
 
-            {/* Icon/Image Box */}
             <div className="relative mb-6 mt-4">
               <div
                 className={`w-24 h-24 rounded-full border-4 border-[#2C2C2C] flex items-center justify-center bg-white shadow-inner relative z-10
@@ -438,13 +458,11 @@ export function ShopScreen({
                 )}
               </div>
 
-              {/* Starburst under image */}
               {modalState.type === "success" && (
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-[#FFC800] rounded-full opacity-20 blur-xl animate-pulse" />
               )}
             </div>
 
-            {/* Text */}
             <h2
               className={`font-['Press_Start_2P'] text-lg mb-3 relative z-10 leading-snug
                 ${modalState.type === "success" ? "text-[#00D66F]" : "text-[#FF4757]"}`}
@@ -458,7 +476,6 @@ export function ShopScreen({
               {modalState.message}
             </p>
 
-            {/* Button */}
             <button
               onClick={() => setModalState({ ...modalState, isOpen: false })}
               className={`w-full border-4 border-[#2C2C2C] rounded-xl px-6 py-4 relative z-10 shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all flex justify-center items-center gap-2
