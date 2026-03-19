@@ -3,14 +3,11 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
-  Delete,
-  Query,
   BadRequestException,
   ParseEnumPipe,
   Request,
-  Logger
+  Headers,
 } from '@nestjs/common';
 import { ItemService } from './item.service';
 import { PurchaseItemDto } from './dto/purchaseData.dto';
@@ -44,12 +41,13 @@ export class ItemController {
 
   @Get('my-items/:category')
   async getMyItems(
-    @Request() req,
+    @Headers('x-user-id') clerkId: string, // Fetch clerkId from header
     @Param('category', new ParseEnumPipe(ItemType)) category: ItemType,
   ) {
-    // If req.user is undefined, this next line will crash the route
-    const userId = req.user?.id; 
-    
-    return this.itemService.findOwnItems(userId, category);
+    if (!clerkId) {
+      throw new BadRequestException('Missing x-user-id header');
+    }
+
+    return this.itemService.findOwnItems(clerkId, category);
   }
 }

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Coins, Loader2, Ghost, Check } from "lucide-react";
+import { Loader2, Ghost, Check, AlertCircle, Package } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
+import { InventoryScreen } from "./inventory-screen";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3100";
 
 const CATEGORY_MAP = {
   character: "AVATAR_OUTFIT",
@@ -32,8 +33,8 @@ export function ShopScreen({
   const [ownedItemIds, setOwnedItemIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [purchasingItemId, setPurchasingItemId] = useState<number | null>(null);
+  const [viewMode, setViewMode] = useState<"shop" | "inventory">("shop");
 
-  // Updated Modal State with imageUrl
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
     type: "success" | "error";
@@ -49,12 +50,11 @@ export function ShopScreen({
       try {
         const enumType = CATEGORY_MAP[activeTab];
 
-        // Fetch both shop items and owned items in parallel
         const [itemsRes, ownedRes] = await Promise.all([
           fetch(`${API_BASE_URL}/item/filter/${enumType}`),
           fetch(`${API_BASE_URL}/item/my-items/${enumType}`, {
             headers: {
-              "x-user-id": clerkId, 
+              "x-user-id": clerkId,
             },
           }),
         ]);
@@ -63,26 +63,17 @@ export function ShopScreen({
         const ownedData = await ownedRes.json();
 
         setItems(itemsData || []);
-        
-        // --- BULLETPROOF ID PARSING ---
-        const ownedIds = Array.isArray(ownedData) 
-          ? ownedData.map((item: any) => {
-              // 1. If API returns an array of raw IDs: [1, 2, 3]
-              if (typeof item === 'number' || typeof item === 'string') return Number(item);
-              
-              // 2. If API returns nested item objects: [{ item: { id: 1 } }]
-              if (item.item && item.item.id) return Number(item.item.id);
-              
-              // 3. If API returns the ownership record or flat item: [{ itemId: 1 }] or [{ id: 1 }]
-              return Number(item.itemId || item.id);
-            }) 
-          : [];
-          
-        console.log("Raw Owned Data from API:", ownedData);
-        console.log("Parsed Owned IDs:", ownedIds);
-        
-        setOwnedItemIds(ownedIds);
 
+        const ownedIds = Array.isArray(ownedData)
+          ? ownedData.map((item: any) => {
+              if (typeof item === "number" || typeof item === "string")
+                return Number(item);
+              if (item.item && item.item.id) return Number(item.item.id);
+              return Number(item.itemId || item.id);
+            })
+          : [];
+
+        setOwnedItemIds(ownedIds);
       } catch (error) {
         console.error("Failed to fetch items:", error);
         setItems([]);
@@ -91,11 +82,10 @@ export function ShopScreen({
         setLoading(false);
       }
     };
-    
+
     fetchItemsAndOwned();
   }, [activeTab, isLoaded, clerkId]);
 
-  // Logic to pick a random special item and separate the rest
   const { specialItem, regularItems } = useMemo(() => {
     if (items.length === 0) return { specialItem: null, regularItems: [] };
 
@@ -122,14 +112,8 @@ export function ShopScreen({
       if (response.ok) {
         if (result.remainingPoints !== undefined) {
           onPurchaseSuccess(result.remainingPoints);
-          
-          // Instantly add the item to owned items so UI updates without refreshing
           setOwnedItemIds((prev) => [...prev, itemId]);
-          
-          // Find the exact item the user just bought
           const purchasedItem = items.find((item) => item.id === itemId);
-          
-          // Show Success Modal with picture and specific name
           setModalState({
             isOpen: true,
             type: "success",
@@ -138,7 +122,6 @@ export function ShopScreen({
           });
         }
       } else {
-        // Show Error Modal
         setModalState({
           isOpen: true,
           type: "error",
@@ -159,97 +142,170 @@ export function ShopScreen({
   if (!isLoaded)
     return (
       <div className="h-full bg-[#8B6332] flex items-center justify-center">
-        <Loader2 className="animate-spin text-white" />
+        <Loader2 className="animate-spin text-white w-10 h-10" />
       </div>
     );
 
   return (
-    <div className="flex flex-col h-full bg-[#8B6332] pb-20 overflow-hidden text-white relative">
-      {/* Tab Header */}
-      <header className="bg-[#513418] border-b-4 border-[#2C2C2C] px-4 py-4 sticky top-0 z-20">
-        <div className="max-w-md mx-auto flex gap-2">
-          {(["character", "pet"] as const).map((cat) => (
+    <div className="flex flex-col h-full bg-[#EFE7D3] pb-20 overflow-hidden relative z-[0]">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-[0.03] bg-[repeating-linear-gradient(45deg,#000,#000_2px,transparent_2px,transparent_6px)] z-0 pointer-events-none" />
+
+      {/* Header */}
+      <header className="bg-[#5C3D1F] border-b-4 border-[#2C2C2C] relative z-20 shadow-[0_4px_0_0_rgba(0,0,0,0.2)]">
+        <div className="absolute top-0 left-0 right-0 h-2 bg-[repeating-linear-gradient(90deg,#FF4757_0px,#FF4757_20px,#FFF_20px,#FFF_40px)] opacity-80" />
+        <div className="px-4 pt-5 pb-4 max-w-md mx-auto">
+          <div className="flex gap-2">
+            <div className="flex flex-1 gap-2">
+              {(["character", "pet"] as const).map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveTab(cat)}
+                  className={`flex-1 border-3 border-[#2C2C2C] rounded-xl py-2 flex items-center justify-center gap-1.5 transition-all duration-200 shadow-[2px_2px_0_0_rgba(0,0,0,0.3)]
+                    ${
+                      activeTab === cat
+                        ? "bg-[#FFC800] text-[#2C2C2C] translate-y-0.5 shadow-none"
+                        : "bg-[#8B6332] text-white hover:bg-[#9c6f37] active:translate-y-0.5 active:shadow-none"
+                    }`}
+                >
+                  {cat === "character" ? (
+                    <img
+                      src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/human_shadow.png"
+                      alt="Character"
+                      className={`w-4 h-4 ${activeTab !== cat && "brightness-0 invert opacity-70"}`}
+                    />
+                  ) : (
+                    <img
+                      src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/animal_footprint_shadow.png"
+                      alt="Pet"
+                      className={`w-4 h-4 ${activeTab !== cat && "brightness-0 invert opacity-70"}`}
+                    />
+                  )}
+                  <span className="font-['Press_Start_2P'] text-xs uppercase pt-0.5">
+                    {cat}
+                  </span>
+                </button>
+              ))}
+            </div>
+
             <button
-              key={cat}
-              onClick={() => setActiveTab(cat)}
-              className={`flex-1 border-3 border-[#2C2C2C] rounded-lg py-2 font-bold capitalize transition-all 
-                ${activeTab === cat ? "bg-[#FFC800] text-[#2C2C2C]" : "bg-[#754F26] text-white"}`}
+              onClick={() =>
+                setViewMode((prev) => (prev === "shop" ? "inventory" : "shop"))
+              }
+              className={`w-14 flex flex-col items-center justify-center border-3 border-[#2C2C2C] rounded-xl transition-all duration-200 shadow-[2px_2px_0_0_rgba(0,0,0,0.3)]
+              ${
+                viewMode === "inventory"
+                  ? "bg-[#00D66F] text-white translate-y-0.5 shadow-none"
+                  : "bg-[#4CAF50] text-white hover:bg-[#43A047] active:translate-y-0.5 active:shadow-none"
+              }`}
             >
-              {cat === "character" ? "👤" : "🐾"} {cat}
+              <img
+                src={
+                  viewMode === "inventory"
+                    ? "https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/bag_open.png"
+                    : "https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/bag_close.png"
+                }
+                alt={viewMode === "inventory" ? "Bag Open" : "Bag Closed"}
+                className="w-5 h-5 mb-0.5 object-contain drop-shadow-sm"
+              />
+              <span className="text-xs">BAG</span>
             </button>
-          ))}
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-4 py-6">
+      <main className="flex-1 overflow-y-auto px-4 py-6 relative z-10">
         <div className="max-w-md mx-auto space-y-6">
           {loading ? (
-            <div className="flex justify-center py-10">
-              <Loader2 className="animate-spin w-8 h-8 text-[#FFC800]" />
+            <div className="flex flex-col items-center justify-center py-20 opacity-70">
+              <Loader2 className="animate-spin w-10 h-10 text-[#FF9800] mb-4" />
+              <p className="font-['Press_Start_2P'] text-[10px] text-[#754F26]">
+                {viewMode === "shop" ? "STOCKING SHELVES..." : "OPENING BAG..."}
+              </p>
             </div>
+          ) : viewMode === "inventory" ? (
+            <InventoryScreen items={items} ownedItemIds={ownedItemIds} />
           ) : items.length > 0 ? (
             <>
-              {/* --- SPECIAL PICK --- */}
+              {/* SPECIAL PICK */}
               {specialItem && (
-                <div className="relative">
-                  <div className="absolute -top-2 left-4 bg-[#FF4757] border-3 border-[#2C2C2C] rounded-full px-3 py-1 z-10 shadow-[2px_2px_0_0_rgba(0,0,0,0.25)]">
-                    <span className="text-[10px] font-black text-white tracking-tighter">
-                      SPECIAL OFFER
+                <div className="relative animate-[slideUp_0.4s_ease-out]">
+                  <div className="absolute -top-4 left-4 z-10 bg-[#FF4757] border-3 border-[#2C2C2C] rounded-full px-4 py-1.5 shadow-[3px_3px_0_0_rgba(0,0,0,0.3)] shadow-[0_0_10px_rgba(255,71,87,0.7)] transition-transform">
+                    <span className="inline-flex items-center gap-1.5 text-white tracking-widest font-['Press_Start_2P'] text-[9px] pt-0.5 drop-shadow-[1px_1px_0_rgba(0,0,0,0.5)]">
+                      <img
+                        src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/zap.png"
+                        alt="Zap"
+                        className="w-4 h-4 object-contain animate-vibrate"
+                      />
+                      <span className="pt-0.5">SPECIAL OFFER</span>
                     </span>
                   </div>
-                  <div className="bg-gradient-to-r from-[#FFC800] to-[#FFD700] border-4 border-[#2C2C2C] rounded-2xl p-5 shadow-[6px_6px_0_0_rgba(0,0,0,0.3)]">
-                    <div className="flex items-center justify-between">
+
+                  <div className="bg-gradient-to-br from-[#FFF8E1] to-[#FFD54F] border-4 border-[#2C2C2C] rounded-2xl p-5 shadow-[6px_6px_0_0_rgba(0,0,0,0.2)] relative overflow-hidden">
+                    <div className="absolute -inset-[120%] opacity-20 bg-[repeating-conic-gradient(from_0deg,transparent_0deg_15deg,#FF9800_15deg_30deg)] animate-[spin_20s_linear_infinite] rounded-full" />
+
+                    <div className="flex items-center justify-between relative z-10">
                       <div className="flex items-center gap-4">
-                        <span className="text-6xl drop-shadow-md">
+                        <div className="w-20 h-20 mt-2 bg-white border-4 border-[#2C2C2C] rounded-xl shadow-inner flex items-center justify-center relative overflow-hidden">
                           {specialItem.imageUrl?.startsWith("http") ? (
-                            <img src={specialItem.imageUrl} alt={specialItem.name} className="w-16 h-16 object-contain" />
+                            <img
+                              src={specialItem.imageUrl}
+                              alt={specialItem.name}
+                              className="w-14 h-14 object-contain animate-[bounce_3s_infinite]"
+                            />
                           ) : (
-                            specialItem.imageUrl || "✨"
+                            <span className="text-4xl animate-bounce">
+                              {specialItem.imageUrl || "✨"}
+                            </span>
                           )}
-                        </span>
+                        </div>
                         <div>
-                          <p className="text-xl font-black text-[#2C2C2C] leading-none">
-                            {specialItem.name}
+                          <p className="font-['Press_Start_2P'] text-sm text-[#2C2C2C] leading-snug mb-1">
+                            {specialItem.name.toUpperCase()}
                           </p>
-                          <p className="text-[10px] font-bold text-[#FF4757] mt-2 uppercase tracking-widest">
+                          <p className="font-['Nunito'] text-xs font-black text-[#FF4757] uppercase">
                             Rare Find!
                           </p>
                         </div>
                       </div>
-                      
-                      {/* Special Item Purchase Button */}
+
                       {(() => {
                         const isOwned = ownedItemIds.includes(specialItem.id);
                         const canAfford = userCoins >= specialItem.price;
-                        const isPurchasing = purchasingItemId === specialItem.id;
+                        const isPurchasing =
+                          purchasingItemId === specialItem.id;
 
                         return (
                           <button
                             disabled={isOwned || !canAfford || isPurchasing}
                             onClick={() => handlePurchase(specialItem.id)}
-                            className={`border-3 border-[#2C2C2C] rounded-xl px-4 py-3 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] transition-all disabled:opacity-80
-                              ${isOwned ? "bg-[#00D66F] text-white" : "bg-white active:translate-y-1"}`}
+                            className={`border-4 border-[#2C2C2C] rounded-2xl px-4 py-3 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] transition-all flex items-center justify-center min-w-[100px]
+                              ${isPurchasing ? "bg-white" : isOwned ? "bg-[#00D66F] text-white cursor-default translate-y-1 shadow-none" : canAfford ? "bg-white hover:bg-gray-50 active:translate-y-1 active:shadow-none" : "bg-[#C0C0C0] opacity-80 cursor-not-allowed"}`}
                           >
-                            <div className="flex items-center gap-2">
-                              {isPurchasing ? (
-                                <Loader2 className="animate-spin w-5 h-5 text-black" />
-                              ) : isOwned ? (
-                                <>
-                                  <Check className="w-5 h-5" strokeWidth={4} />
-                                  <span className="font-black">OWNED</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Coins
-                                    className="w-5 h-5 text-[#FFC800]"
-                                    strokeWidth={3}
-                                  />
-                                  <span className="font-black text-[#2C2C2C]">
-                                    {specialItem.price}
-                                  </span>
-                                </>
-                              )}
-                            </div>
+                            {isPurchasing ? (
+                              <Loader2 className="animate-spin w-6 h-6 text-[#2C2C2C]" />
+                            ) : isOwned ? (
+                              <div className="flex flex-col items-center">
+                                <Check
+                                  className="w-5 h-5 mb-0.5"
+                                  strokeWidth={4}
+                                />
+                                <span className="text-sm">OWNED</span>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center">
+                                <img
+                                  src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/coin.png"
+                                  className={`w-5 h-5 mb-1 ${!canAfford && "grayscale"}`}
+                                  alt="Coin"
+                                />
+                                <span
+                                  className={`text-sm ${!canAfford ? "text-[#FF4757]" : "text-[#2C2C2C]"}`}
+                                >
+                                  {specialItem.price}
+                                </span>
+                              </div>
+                            )}
                           </button>
                         );
                       })()}
@@ -258,73 +314,111 @@ export function ShopScreen({
                 </div>
               )}
 
-              {/* --- REGULAR GRID --- */}
-              <div className="grid grid-cols-3 gap-4">
-                {regularItems.map((item) => {
+              {/* REGULAR GRID (Shop) */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+                {regularItems.map((item, idx) => {
                   const isOwned = ownedItemIds.includes(item.id);
                   const canAfford = userCoins >= item.price;
                   const isPurchasing = purchasingItemId === item.id;
 
                   return (
-                    <button
+                    <div
                       key={item.id}
-                      disabled={isOwned || !canAfford || isPurchasing}
-                      onClick={() => handlePurchase(item.id)}
-                      className={`relative aspect-[3/4] rounded-2xl border-4 border-[#2C2C2C] flex flex-col items-center justify-between p-4 transition-all
-                        ${
-                          isOwned 
-                            ? "bg-[#D3F9E5] border-[#00A854] cursor-default" // Owned Style
-                            : canAfford
-                              ? "bg-white shadow-[5px_5px_0_0_rgba(0,0,0,0.25)] hover:bg-gray-50 active:translate-y-1 active:shadow-none"
-                              : "bg-[#C0C0C0] opacity-70 cursor-not-allowed"
-                        }`}
+                      className={`relative bg-white border-4 border-[#2C2C2C] rounded-2xl p-3 flex flex-col items-center justify-between transition-all duration-300 animate-[fadeIn_0.5s_ease-out]
+                        ${isOwned ? "opacity-80 border-[#00A854] bg-[#F0FDF4]" : "shadow-[4px_4px_0_0_rgba(0,0,0,0.15)] hover:-translate-y-1 hover:shadow-[6px_6px_0_0_rgba(0,0,0,0.15)]"}`}
+                      style={{
+                        animationDelay: `${idx * 50}ms`,
+                        animationFillMode: "both",
+                      }}
                     >
-                      <span className="text-4xl mt-2 drop-shadow-sm flex items-center justify-center w-full h-12">
+                      <div
+                        className={`w-full aspect-square rounded-xl flex items-center justify-center mb-3 border-2 relative overflow-hidden
+                        ${isOwned ? "bg-[#D3F9E5] border-[#86EFAC]" : "bg-[#F5F8F0] border-[#E2E8F0]"}`}
+                      >
                         {isPurchasing ? (
-                          <Loader2 className="animate-spin w-8 h-8 text-[#00D66F]" />
+                          <Loader2 className="animate-spin w-8 h-8 text-[#FFC800]" />
                         ) : item.imageUrl?.startsWith("http") ? (
-                          <img src={item.imageUrl} alt={item.name} className={`w-10 h-10 object-contain ${isOwned ? "opacity-60" : ""}`} />
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            className={`w-14 h-14 object-contain transition-transform ${isOwned ? "opacity-70" : "hover:scale-110"}`}
+                          />
                         ) : (
-                          item.imageUrl || "📦"
+                          <span className="text-4xl">
+                            {item.imageUrl || "📦"}
+                          </span>
                         )}
-                      </span>
 
-                      <div className="w-full space-y-2">
-                        <p className={`text-[11px] font-black leading-tight line-clamp-2 min-h-[2rem] ${isOwned ? "text-[#00A854]" : "text-[#2C2C2C]"}`}>
+                        {isOwned && (
+                          <div className="absolute inset-0 bg-white/20 flex items-center justify-center">
+                            <img
+                              src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/sale_sign.png"
+                              alt="Sold Sign"
+                              className="w-16 h-16 object-contain rotate-[15deg] drop-shadow-md"
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="w-full text-center flex flex-col flex-1 justify-between">
+                        <p
+                          className={`font-['Nunito'] text-xs font-black leading-tight line-clamp-2 mb-2 min-h-[2rem] 
+                          ${isOwned ? "text-[#00A854]" : "text-[#2C2C2C]"}`}
+                        >
                           {item.name}
                         </p>
-                        
-                        <div
-                          className={`flex items-center justify-center gap-1 border-[3px] border-[#2C2C2C] rounded-xl py-1.5 shadow-[2px_2px_0_0_rgba(0,0,0,0.1)]
-                          ${isOwned ? "bg-[#00D66F]" : canAfford ? "bg-[#FFC800]" : "bg-[#8E8E8E]"}`}
+
+                        <button
+                          disabled={isOwned || !canAfford || isPurchasing}
+                          onClick={() => handlePurchase(item.id)}
+                          className={`w-full border-2 border-[#2C2C2C] rounded-xl py-1.5 flex items-center justify-center gap-1.5 transition-all
+                            ${
+                              isOwned
+                                ? "bg-[#00D66F] shadow-none cursor-default"
+                                : canAfford
+                                  ? "bg-[#FFC800] active:translate-y-0.5 shadow-[0_2px_0_0_rgba(0,0,0,1)] active:shadow-none cursor-pointer"
+                                  : "bg-[#E0E0E0] cursor-not-allowed"
+                            }`}
                         >
                           {isOwned ? (
                             <>
-                              <Check className="w-3 h-3 text-white" strokeWidth={4} />
-                              <span className="text-[10px] font-black text-white tracking-tighter">OWNED</span>
+                              <Check
+                                className="w-3 h-3 text-white"
+                                strokeWidth={4}
+                              />
+                              <span className="font-['Press_Start_2P'] text-[8px] text-white pt-0.5">
+                                OWNED
+                              </span>
                             </>
                           ) : (
                             <>
-                              <Coins
-                                className="w-3 h-3 text-white"
-                                strokeWidth={3}
+                              <img
+                                src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/coin.png"
+                                alt="Coin"
+                                className={`w-3.5 h-3.5 object-contain ${!canAfford && "grayscale opacity-60"}`}
                               />
-                              <span className="text-[10px] font-black text-white tracking-tighter">
+                              <span
+                                className={`font-['Press_Start_2P'] text-[9px] pt-0.5 ${!canAfford ? "text-[#FF4757]" : "text-[#2C2C2C]"}`}
+                              >
                                 {item.price}
                               </span>
                             </>
                           )}
-                        </div>
+                        </button>
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center pt-10 opacity-50">
-              <Ghost className="w-12 h-12 mb-2" />
-              <p className="font-bold">No Items Available</p>
+            <div className="flex flex-col items-center justify-center py-20 opacity-50">
+              <Ghost className="w-16 h-16 text-[#754F26] mb-4 animate-bounce" />
+              <p className="font-['Press_Start_2P'] text-[10px] text-[#754F26] text-center leading-loose">
+                OUT OF STOCK!
+                <br />
+                COME BACK LATER.
+              </p>
             </div>
           )}
         </div>
@@ -332,49 +426,73 @@ export function ShopScreen({
 
       {/* --- PURCHASE MODAL --- */}
       {modalState.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="bg-[#FFFDF5] border-4 border-[#2C2C2C] rounded-2xl p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] max-w-sm w-full text-center flex flex-col items-center animate-in fade-in zoom-in duration-200">
-            
-            {/* Item Image / Icon */}
-            <div className={`flex items-center justify-center mb-4 drop-shadow-md min-h-[5rem]`}>
-              {modalState.type === "success" && modalState.imageUrl ? (
-                // Check if it's a URL (starts with http) to render an image, otherwise render text
-                modalState.imageUrl.startsWith("http") ? (
-                  <img 
-                    src={modalState.imageUrl} 
-                    alt="Purchased Item" 
-                    className="w-24 h-24 object-contain"
-                  />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          {/* ... (โค้ด Modal แจ้งเตือนหลังกดซื้อ เหมือนเดิมเป๊ะ) ... */}
+          <div className="bg-[#FFFDF5] border-4 border-[#2C2C2C] rounded-2xl p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] max-w-sm w-full text-center flex flex-col items-center animate-in zoom-in-95 duration-200 relative overflow-hidden">
+            {modalState.type === "success" && (
+              <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,#FFC800_0,#FFFDF5_100%)] animate-[pulse_2s_infinite]" />
+            )}
+
+            <div className="relative mb-6 mt-4">
+              <div
+                className={`w-24 h-24 rounded-full border-4 border-[#2C2C2C] flex items-center justify-center bg-white shadow-inner relative z-10
+                ${modalState.type === "success" ? "bg-[#FFF8E1]" : "bg-[#FFEAEB]"}`}
+              >
+                {modalState.type === "success" && modalState.imageUrl ? (
+                  modalState.imageUrl.startsWith("http") ? (
+                    <img
+                      src={modalState.imageUrl}
+                      alt="Item"
+                      className="w-16 h-16 object-contain animate-[bounce_2s_infinite]"
+                    />
+                  ) : (
+                    <span className="text-5xl">{modalState.imageUrl}</span>
+                  )
+                ) : modalState.type === "success" ? (
+                  <span className="text-5xl">🎉</span>
                 ) : (
-                  <span className="text-7xl">{modalState.imageUrl}</span>
-                )
-              ) : (
-                <span className="text-7xl">{modalState.type === "success" ? "🎉" : "❌"}</span>
+                  <AlertCircle
+                    className="w-12 h-12 text-[#FF4757]"
+                    strokeWidth={3}
+                  />
+                )}
+              </div>
+
+              {modalState.type === "success" && (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-[#FFC800] rounded-full opacity-20 blur-xl animate-pulse" />
               )}
             </div>
-            
-            {/* Title */}
+
             <h2
-              className={`text-2xl font-black mb-2 ${
-                modalState.type === "success" ? "text-[#00D66F]" : "text-[#FF4757]"
-              }`}
+              className={`font-['Press_Start_2P'] text-lg mb-3 relative z-10 leading-snug
+                ${modalState.type === "success" ? "text-[#00D66F]" : "text-[#FF4757]"}`}
             >
-              {modalState.type === "success" ? "Success!" : "Oops!"}
+              {modalState.type === "success"
+                ? "ITEM ACQUIRED!"
+                : "PURCHASE FAILED"}
             </h2>
-            
-            {/* Message */}
-            <p className="text-[#2C2C2C] font-bold mb-6 text-lg leading-tight">
+
+            <p className="font-['Nunito'] text-[#2C2C2C] font-bold mb-8 text-sm leading-relaxed relative z-10">
               {modalState.message}
             </p>
-            
-            {/* Close Button */}
+
             <button
               onClick={() => setModalState({ ...modalState, isOpen: false })}
-              className={`w-full border-4 border-[#2C2C2C] rounded-xl px-6 py-3 font-black text-[#2C2C2C] text-lg shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all ${
-                modalState.type === "success" ? "bg-[#FFC800]" : "bg-white"
-              }`}
+              className={`w-full border-4 border-[#2C2C2C] rounded-xl px-6 py-4 relative z-10 shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all flex justify-center items-center gap-2
+                ${modalState.type === "success" ? "bg-[#FFC800] hover:bg-[#FFD54F]" : "bg-white hover:bg-gray-50"}`}
             >
-              {modalState.type === "success" ? "Awesome!" : "Close"}
+              {modalState.type === "success" ? (
+                <>
+                  <Check className="w-5 h-5 text-[#2C2C2C]" strokeWidth={4} />
+                  <span className="font-['Press_Start_2P'] text-[11px] text-[#2C2C2C] pt-0.5">
+                    SWEET!
+                  </span>
+                </>
+              ) : (
+                <span className="font-['Press_Start_2P'] text-[11px] text-[#2C2C2C] pt-0.5">
+                  TRY AGAIN
+                </span>
+              )}
             </button>
           </div>
         </div>

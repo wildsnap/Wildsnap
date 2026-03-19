@@ -27,6 +27,8 @@ export function HomeScreen({ onScanClick, username }: HomeScreenProps) {
         const apiUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:3100";
 
+
+        console.log("Fetching dashboard data from:", apiUrl);
         const animalsRes = await axios.get(`${apiUrl}/animals`);
         const totalAnimals = animalsRes.data.length;
 

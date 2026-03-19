@@ -76,10 +76,12 @@ export class ItemService {
     });
   }
 
-  async findOwnItems(userId: number, type?: ItemType) {
+  async findOwnItems(clerkId: string, type?: ItemType) {
     return this.prisma.userInventory.findMany({
       where: {
-        userId: userId,
+        user: {
+          clerkId: clerkId,
+        },
         item: type ? { type: type } : {},
       },
       include: {
