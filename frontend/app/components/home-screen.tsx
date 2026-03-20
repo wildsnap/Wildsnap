@@ -91,15 +91,7 @@ export function HomeScreen({ onScanClick, username }: HomeScreenProps) {
       </header>
 
       {/* Main Content */}
-      <main className="relative z-0 flex-1 flex flex-col items-center px-4 pt-3 pb-24">
-        {/* Avatar Character */}
-        <div className="relative mb-4 mt-auto">
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-5 bg-black/20 rounded-[100%] blur-sm" />
-          <div className="relative z-10 animate-[bounce_2s_ease-in-out_infinite]">
-            <PixelAvatar className="w-36 h-28 drop-shadow-[0_10px_10px_rgba(0,0,0,0.3)]" />
-          </div>
-        </div>
-
+      <main className="relative z-0 flex-1 flex flex-col items-center px-4 pt-3 pb-24 mb-20">
         {/* Quest Badge */}
         <div className="bg-[#FFF9C4] border-4 border-[#2C2C2C] rounded-xl p-3 mb-5 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] max-w-xs w-full relative overflow-hidden group cursor-pointer hover:-translate-y-1 transition-transform">
           <div className="absolute top-2 left-2 w-2 h-2 bg-[#FF4757] border border-[#2C2C2C] rounded-full" />
@@ -129,6 +121,14 @@ export function HomeScreen({ onScanClick, username }: HomeScreenProps) {
                 <div className="h-full bg-gradient-to-r from-[#00D66F] to-[#00F47F] w-[33%] border-r-2 border-[#2C2C2C]" />
               </div>
             </div>
+          </div>
+        </div>
+        
+        {/* Avatar Character */}
+        <div className="relative mb-10 mt-auto">
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-5 bg-black/20 rounded-[100%] blur-sm" />
+          <div className="relative z-10 animate-[bounce_2s_ease-in-out_infinite]">
+            <PixelAvatar className="w-36 h-28 drop-shadow-[0_10px_10px_rgba(0,0,0,0.3)]" />
           </div>
         </div>
 
@@ -172,29 +172,6 @@ export function HomeScreen({ onScanClick, username }: HomeScreenProps) {
           </button>
         </div>
 
-        {/* Stats HUD */}
-        <div className="mt-6 mb-auto bg-white/90 backdrop-blur-md border-4 border-[#2C2C2C] rounded-xl px-5 py-3 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] flex items-center justify-between w-full max-w-[280px]">
-          <div className="text-center flex-1">
-            <div className="font-['Press_Start_2P'] text-xl text-[#FF4757] drop-shadow-sm">
-              {isLoading ? "..." : stats.unlocked}
-            </div>
-            <div className="font-['Nunito'] text-[10px] text-[#2C2C2C] font-black mt-1 uppercase tracking-wider">
-              Unlocked
-            </div>
-          </div>
-
-          <div className="w-1 h-8 bg-[#2C2C2C] rounded-full opacity-20 mx-4" />
-
-          <div className="text-center flex-1">
-            {/* 🌟 แสดงจำนวนสัตว์ทั้งหมดในระบบ */}
-            <div className="font-['Press_Start_2P'] text-xl text-[#00A3FF] drop-shadow-sm">
-              {isLoading ? "..." : stats.total}
-            </div>
-            <div className="font-['Nunito'] text-[10px] text-[#2C2C2C] font-black mt-1 uppercase tracking-wider">
-              Total
-            </div>
-          </div>
-        </div>
       </main>
     </div>
   );

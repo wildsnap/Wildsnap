@@ -11,6 +11,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { CollectionsModule } from './collections/collections.module';
 import { AnimalsModule } from './animals/animals.module';
 import { ItemModule } from './item/item.module';
+import { QuestModule } from './quest/quest.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ItemModule } from './item/item.module';
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     ItemModule,
+    QuestModule,
   ],
   controllers: [AppController],
   providers: [AppService, UsersService],
