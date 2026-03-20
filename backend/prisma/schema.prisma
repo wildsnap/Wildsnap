@@ -80,6 +80,8 @@ model Mission {
   title        String
   description  String?
   missionType  MissionType
+  isAutoTrigger Boolean      @default(false)
+  isActive      Boolean      @default(true) 
   animalId     Int?
   storyId      Int?
   targetValue  Int           @default(1)
@@ -99,6 +101,7 @@ model UserMission {
   completedAt     DateTime?
   mission         Mission   @relation(fields: [missionId], references: [id])
   user            User      @relation(fields: [userId], references: [id])
+  @@unique([userId, missionId]) // Prevents duplicate assignments
 }
 
 model Achievement {
