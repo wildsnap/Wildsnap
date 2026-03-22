@@ -13,6 +13,7 @@ import { ItemService } from './item.service';
 import { PurchaseItemDto } from './dto/purchaseData.dto';
 import { ItemType } from '../../generated/prisma/client';
 
+
 @Controller('item')
 export class ItemController {
   constructor(private readonly itemService: ItemService) {}
@@ -41,7 +42,7 @@ export class ItemController {
 
   @Get('my-items/:category')
   async getMyItems(
-    @Headers('x-user-id') clerkId: string, // Fetch clerkId from header
+    @Headers('x-user-id') clerkId: string,
     @Param('category', new ParseEnumPipe(ItemType)) category: ItemType,
   ) {
     if (!clerkId) {
