@@ -24,6 +24,7 @@ model User {
   collections       UserCollection[]
   inventory         UserInventory[]
   missions          UserMission[]
+  UserSettings      UserSettings?
 }
 
 model Animal {
@@ -76,18 +77,20 @@ model ScanLog {
 }
 
 model Mission {
-  id           Int           @id @default(autoincrement())
-  title        String
-  description  String?
-  missionType  MissionType
-  animalId     Int?
-  storyId      Int?
-  targetValue  Int           @default(1)
-  rewardPoints Int           @default(0)
-  createdAt    DateTime      @default(now())
-  animal       Animal?       @relation(fields: [animalId], references: [id])
-  story        Story?        @relation(fields: [storyId], references: [id])
-  userMissions UserMission[]
+  id            Int           @id @default(autoincrement())
+  title         String
+  description   String?
+  missionType   MissionType
+  animalId      Int?
+  storyId       Int?
+  targetValue   Int           @default(1)
+  rewardPoints  Int           @default(0)
+  createdAt     DateTime      @default(now())
+  isActive      Boolean       @default(true)
+  isAutoTrigger Boolean       @default(false)
+  animal        Animal?       @relation(fields: [animalId], references: [id])
+  story         Story?        @relation(fields: [storyId], references: [id])
+  userMissions  UserMission[]
 }
 
 model UserMission {
@@ -99,6 +102,8 @@ model UserMission {
   completedAt     DateTime?
   mission         Mission   @relation(fields: [missionId], references: [id])
   user            User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, missionId])
 }
 
 model Achievement {
@@ -142,6 +147,17 @@ model UserInventory {
   user        User     @relation(fields: [userId], references: [id])
 }
 
+model UserSettings {
+  id           Int        @id @default(autoincrement())
+  hasMusic     Boolean    @default(true)
+  hasSound     Boolean    @default(true)
+  hasVibration Boolean    @default(true)
+  screenMode   ScreenMode @default(light)
+  language     Language   @default(en)
+  userId       Int        @unique
+  User         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 enum Rarity {
   COMMON
   UNCOMMON
@@ -161,4 +177,14 @@ enum ItemType {
   AVATAR_ACCESSORY
   ANIMAL_DECORATION
   REAL_WORLD_COUPON
+}
+
+enum Language {
+  en
+  th
+}
+
+enum ScreenMode {
+  light
+  dark
 }
