@@ -9,6 +9,7 @@ export class UsersService {
   async findOneByClerkId(clerkId: string) {
     return this.prisma.user.findUnique({
       where: { clerkId },
+      include: { settings: true }
     });
   }
 
