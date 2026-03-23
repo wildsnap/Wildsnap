@@ -13,6 +13,13 @@ interface HomeScreenProps {
   missionData: any;
 }
 
+const getRankTitle = (level: number = 1) => {
+  if (level >= 4) return "Master Explorer";
+  if (level >= 3) return "Pro Tracker";
+  if (level >= 2) return "Junior Scout";
+  return "Novice Ranger"; // Level 1 or below
+};
+
 export function HomeScreen({
   onScanClick,
   username,
@@ -26,7 +33,7 @@ export function HomeScreen({
 
   useEffect(() => {
     if (!isLoaded) return;
-    console.log(missionData)
+    console.log(missionData);
 
     const fetchDashboardData = async () => {
       try {
@@ -91,7 +98,7 @@ export function HomeScreen({
               </h1>
               {/* Optional: You could even change the "Explorer" title based on level later! */}
               <p className="font-['Nunito'] text-[11px] text-[#FFC800] font-black mt-0.5 uppercase tracking-widest drop-shadow-md">
-                Explorer
+                {getRankTitle(lvl)}
               </p>
             </div>
           </div>
@@ -116,21 +123,31 @@ export function HomeScreen({
                     "https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/star.png"
                   }
                   alt={missionData.mission.animal?.name || "Quest Target"}
-                  className="w-6 h-6 object-contain drop-shadow-md brightness-0"
+                  className="w-8 h-8 object-contain drop-shadow-md brightness-0"
                 />
               </div>
               <div className="flex-1">
                 <div className="flex justify-between items-end mb-1">
-                  <p className="font-['Press_Start_2P'] text-[14px] text-[#2C2C2C] leading-loose">
-                    {missionData.mission.name || "Tutorial"}
-                  </p>
+                  {/* Wrapped the label and title in a column flex container */}
+                  <div className="flex flex-col">
+                    <span className="font-['Nunito'] text-[10px] text-[#754F26] font-extrabold uppercase tracking-widest mb-0.5">
+                      Tutorial
+                    </span>
+                    <p className="font-['Press_Start_2P'] text-[14px] text-[#2C2C2C] leading-loose">
+                      {missionData.mission.title || ""}
+                    </p>
+                  </div>
+
                   <span className="font-['Press_Start_2P'] text-[12px] text-[#00D66F]">
-                    {missionData.currentProgress} / {missionData.mission.targetValue}
+                    {missionData.currentProgress} /{" "}
+                    {missionData.mission.targetValue}
                   </span>
                 </div>
+
                 <p className="font-['Nunito'] text-xs text-[#754F26] font-bold mb-1.5 line-clamp-2">
                   {missionData.mission.description}
                 </p>
+
                 <div className="w-full h-2.5 bg-[#E0E0E0] border-2 border-[#2C2C2C] rounded-full overflow-hidden">
                   {/* Dynamic Progress Bar */}
                   <div
@@ -138,7 +155,9 @@ export function HomeScreen({
                     style={{
                       width: `${Math.min(
                         100,
-                        (missionData.currentProgress / Math.max(1, missionData.mission.targetValue)) * 100
+                        (missionData.currentProgress /
+                          Math.max(1, missionData.mission.targetValue)) *
+                          100,
                       )}%`,
                     }}
                   />
@@ -149,7 +168,7 @@ export function HomeScreen({
             // Loading state for the badge
             <div className="flex items-center justify-center h-16 relative z-10">
               <p className="font-['Nunito'] text-sm text-[#754F26] font-bold animate-pulse">
-                Loading Quest...
+                Tutorial complete
               </p>
             </div>
           )}
