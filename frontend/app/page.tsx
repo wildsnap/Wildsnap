@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { BottomNavigation } from "./components/bottom-navigation";
 import { HomeScreen } from "./components/home-screen";
@@ -10,6 +10,10 @@ import { AvatarScreen } from "./components/avatar-screen";
 import { ShopScreen } from "./components/shop-screen";
 import { UnlockAnimation } from "./components/animations/unlock-animation";
 import { useCoin } from "./components/providers/CoinContext";
+import {
+  AchievementsScreen,
+  AchievementData,
+} from "./components/achievements-screen";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3100";
 
@@ -28,11 +32,17 @@ interface AnimalData {
 }
 
 const calculateLevel = (points: number) => {
-  if (points >= 950) return 5;
-  if (points >= 600) return 4;
-  if (points >= 250) return 3;
-  if (points >= 100) return 2;
+  if (points >= 1200) return 4;
+  if (points >= 700) return 3;
+  if (points >= 200) return 2;
   return 1;
+};
+
+const calculateNextLevelTarget = (points: number) => {
+  if (points >= 1200) return 9999;
+  if (points >= 700) return 1200;
+  if (points >= 200) return 700;
+  return 200; // Goal for Level 2
 };
 
 export default function Home() {
@@ -40,17 +50,25 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<
     "scan" | "collection" | "avatar" | "shop"
   >("scan");
+  const [profileView, setProfileView] = useState<"avatar" | "achievements">(
+    "avatar",
+  );
 
-  // State for UI Visibility
   const [showScanScreen, setShowScanScreen] = useState(false);
   const [showRewardModal, setShowRewardModal] = useState(false);
   const [showUnlockAnimation, setShowUnlockAnimation] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // DB Data State
   const [dbUser, setDbUser] = useState<any>(null);
   const [activeMission, setActiveMission] = useState<any>(null);
   const [isLoadingData, setIsLoadingData] = useState(true);
+
+  // UPDATE 2: Add Achievements State
+  const [achievements, setAchievements] = useState<AchievementData[]>([]);
+  const [isAchievementsLoading, setIsAchievementsLoading] = useState(true);
+  const [achievementsError, setAchievementsError] = useState<string | null>(
+    null,
+  );
 
   const { coins, setCoins } = useCoin();
   const [currentAnimal, setCurrentAnimal] = useState<AnimalData | null>(null);
@@ -60,19 +78,16 @@ export default function Home() {
     try {
       const headers = { "x-user-id": clerkUser.id };
 
-      // Fetch profile and next mission in parallel
       const [userRes, missionRes] = await Promise.all([
         fetch(`${API_BASE_URL}/users`, { headers }),
         fetch(`${API_BASE_URL}/quests/guided`, { headers }),
       ]);
 
       const userData = await userRes.json();
-
       setDbUser(userData);
 
       if (missionRes.ok) {
         const missionData = await missionRes.json();
-        // Only set if it's a valid mission object (not the "All complete" message)
         if (missionData && !missionData.isFinished) {
           setActiveMission(missionData);
         } else {
@@ -80,7 +95,6 @@ export default function Home() {
         }
       }
 
-      // Sync global coin context with DB
       if (userData.currentPoints !== undefined) {
         setCoins(userData.currentPoints);
       }
@@ -97,9 +111,50 @@ export default function Home() {
     }
   }, [clerkUser, isClerkLoaded]);
 
-  const handleScanClick = () => {
-    setShowScanScreen(true);
-  };
+  // UPDATE 3: Fetch achievements globally once we know dbUser.id
+  const fetchUserAchievements = useCallback(async () => {
+    if (!dbUser?.id) return;
+
+    try {
+      setIsAchievementsLoading(true);
+      setAchievementsError(null);
+
+      const response = await fetch(
+        `${API_BASE_URL}/achievement/user/${dbUser.id}`,
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const formattedData: AchievementData[] = data.map((item: any) => ({
+        id: item.achievement.id,
+        title: item.achievement.name,
+        description: item.achievement.description,
+        currentProgress: item.currentProgress,
+        targetValue: item.achievement.targetValue,
+        isCompleted: item.isCompleted,
+        rewardPoints: item.achievement.rewardPoints,
+      }));
+
+      setAchievements(formattedData);
+    } catch (err) {
+      console.error("Failed to fetch achievements:", err);
+      setAchievementsError(
+        "Could not load your badges. Please check your connection.",
+      );
+    } finally {
+      setIsAchievementsLoading(false);
+    }
+  }, [dbUser?.id]);
+
+  useEffect(() => {
+    fetchUserAchievements();
+  }, [fetchUserAchievements]);
+
+  // ... (Keep existing handlers: handleScanClick, handleAnimalDetected, handlePurchaseSuccess, handleRewardModalClose, handleUnlockComplete)
+  const handleScanClick = () => setShowScanScreen(true);
 
   const handleAnimalDetected = async (data: any) => {
     if (data.class_name === "Unknown") {
@@ -134,7 +189,7 @@ export default function Home() {
 
   const handlePurchaseSuccess = (newBalance: number) => {
     setCoins(newBalance);
-    fetchData(); // Sync other user data
+    fetchData();
   };
 
   const handleRewardModalClose = () => {
@@ -151,7 +206,6 @@ export default function Home() {
     setCurrentAnimal(null);
   };
 
-  // Safely grab display name
   const displayUsername =
     dbUser?.username || clerkUser?.firstName || "Explorer";
 
@@ -165,7 +219,7 @@ export default function Home() {
 
   return (
     <div className="relative w-full h-[calc(100vh-64px)] max-w-md mx-auto bg-[#F5F8F0] overflow-hidden font-['Nunito']">
-      {/* Screens Controlled by Tabs */}
+      {/* ... (Keep HomeScreen and CollectionScreen) */}
       <div className={activeTab === "scan" ? "block h-full" : "hidden"}>
         <HomeScreen
           onScanClick={handleScanClick}
@@ -182,15 +236,31 @@ export default function Home() {
         />
       </div>
 
+      {/* Avatar Tab */}
       <div className={activeTab === "avatar" ? "block h-full" : "hidden"}>
-        <AvatarScreen
-          username={displayUsername}
-          level={calculateLevel(dbUser?.totalPointsEarned || 0)}
-          totalAnimals={dbUser?._count?.collections || 0}
-          achievements={dbUser?._count?.achievements || 0}
-        />
+        {profileView === "avatar" ? (
+          <AvatarScreen
+            username={displayUsername}
+            level={calculateLevel(dbUser?.totalPointsEarned || 0)}
+            totalAnimals={dbUser?._count?.collections || 0}
+            achievements={dbUser?._count?.achievements || 0}
+            currentExp={dbUser?.totalPointsEarned || 0}
+            targetExp={calculateNextLevelTarget(dbUser?.totalPointsEarned || 0)}
+            onAchievementsClick={() => setProfileView("achievements")}
+          />
+        ) : (
+          <AchievementsScreen
+            // UPDATE 4: Pass the new props down!
+            achievements={achievements}
+            isLoading={isAchievementsLoading}
+            error={achievementsError}
+            onBack={() => setProfileView("avatar")}
+            onRetry={fetchUserAchievements}
+          />
+        )}
       </div>
 
+      {/* ... (Keep ShopScreen, Navigation, and Modals) */}
       <div className={activeTab === "shop" ? "block h-full" : "hidden"}>
         <ShopScreen
           userCoins={coins}
@@ -198,9 +268,14 @@ export default function Home() {
         />
       </div>
 
-      <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNavigation
+        activeTab={activeTab}
+        onTabChange={(tab) => {
+          setActiveTab(tab);
+          if (tab !== "avatar") setProfileView("avatar");
+        }}
+      />
 
-      {/* Modals */}
       {showScanScreen && (
         <ScanScreen
           onClose={() => setShowScanScreen(false)}
