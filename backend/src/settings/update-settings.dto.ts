@@ -1,5 +1,5 @@
 import { IsBoolean, IsOptional, IsEnum } from 'class-validator';
-import { ScreenMode, Language } from 'generated/prisma/enums';
+import { ScreenMode, Language } from '../../generated/prisma/enums';
 
 export class UpdateSettingsDto {
   @IsOptional()
