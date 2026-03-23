@@ -12,6 +12,8 @@ import { CollectionsModule } from './collections/collections.module';
 import { AnimalsModule } from './animals/animals.module';
 import { ItemModule } from './item/item.module';
 import { SettingsModule } from './settings/settings.module';
+import { QuestModule } from './quest/quest.module';
+import { AchievementModule } from './achievement/achievement.module';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { SettingsModule } from './settings/settings.module';
     PrismaModule,
     ItemModule,
     SettingsModule,
+    QuestModule,
+    AchievementModule,
   ],
   controllers: [AppController],
   providers: [AppService, UsersService],

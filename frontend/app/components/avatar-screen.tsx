@@ -4,11 +4,21 @@ import img8BitGraphicsPixelsSceneWithForest from "../images/8-bit-graphics-pixel
 import { useState } from "react";
 import { SettingsModal } from "./settings-modal";
 
+const getRankTitle = (level: number = 1) => {
+  if (level >= 4) return "Master Explorer";
+  if (level >= 3) return "Pro Tracker";
+  if (level >= 2) return "Junior Scout";
+  return "Novice Ranger"; // Level 1 or below
+};
+
 interface AvatarScreenProps {
   username: string;
   level: number;
   totalAnimals: number;
   achievements: number;
+  currentExp: number; 
+  targetExp: number;
+  onAchievementsClick: () => void;
 }
 
 export function AvatarScreen({
@@ -16,14 +26,18 @@ export function AvatarScreen({
   level,
   totalAnimals,
   achievements,
+  currentExp,
+  targetExp,
+  onAchievementsClick,
 }: AvatarScreenProps) {
   const [showSettings, setShowSettings] = useState(false);
+  // Prevent division by zero and calculate percentage
+  const progressPercentage = Math.min(100, (currentExp / Math.max(1, targetExp)) * 100);
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-[#F5F8F0] to-[#E8F5E9] pb-20">
       {/* Header with Background */}
       <div className="relative bg-[#754F26] border-b-4 border-[#2C2C2C] overflow-hidden">
-        {/* Background image */}
         <div className="absolute inset-0 opacity-20">
           <img
             src={img8BitGraphicsPixelsSceneWithForest.src as string}
@@ -33,7 +47,6 @@ export function AvatarScreen({
         </div>
 
         <div className="relative px-6 py-8">
-          {/* Level Badge */}
           <div className="absolute top-4 right-4 bg-[#FFC800] border-3 border-[#2C2C2C] rounded-full w-16 h-16 flex flex-col items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,0.3)]">
             <Crown className="w-6 h-6 text-[#2C2C2C]" fill="#2C2C2C" />
             <span className="font-['Press_Start_2P'] text-xs text-[#2C2C2C] mt-1">
@@ -41,7 +54,6 @@ export function AvatarScreen({
             </span>
           </div>
 
-          {/* Avatar */}
           <div className="flex justify-center mb-4">
             <div className="relative">
               <div className="absolute -inset-6 bg-gradient-to-b from-[#FFC800]/30 to-transparent rounded-full blur-2xl" />
@@ -49,15 +61,13 @@ export function AvatarScreen({
             </div>
           </div>
 
-          {/* Username */}
           <h1 className="font-['Press_Start_2P'] text-xl text-white text-center drop-shadow-[3px_3px_0_rgba(0,0,0,0.5)] mb-2">
             {username}
           </h1>
           <p className="font-['Nunito'] text-[#FFC800] text-center font-bold">
-            Junior Explorer
+            {getRankTitle(level)}
           </p>
 
-          {/* Stats */}
           <div className="flex justify-center gap-6 mt-6">
             <div className="text-center">
               <div className="font-['Press_Start_2P'] text-2xl text-[#FFC800] drop-shadow-[2px_2px_0_rgba(0,0,0,0.5)]">
@@ -73,18 +83,42 @@ export function AvatarScreen({
                 {achievements}
               </div>
               <div className="font-['Nunito'] text-white text-xs font-bold mt-1">
-                Badges
+                Achievements
               </div>
             </div>
           </div>
+
+          {/* 2. New Level Progress Bar Added Here */}
+          <div className="mt-8 max-w-[260px] mx-auto w-full relative z-10">
+            <div className="flex justify-between items-end mb-1 px-1">
+              <span className="font-['Press_Start_2P'] text-[14px] text-white drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">
+                LV {level}
+              </span>
+              <span className="font-['Press_Start_2P'] text-[14px] text-[#FFC800] drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">
+                {currentExp} / {targetExp} P
+              </span>
+            </div>
+            
+            {/* The Bar Track */}
+            <div className="w-full h-4 bg-[#2C2C2C] p-[2px] shadow-[4px_4px_0_0_rgba(0,0,0,0.3)]">
+              {/* The Bar Fill */}
+              <div
+                className="h-full bg-gradient-to-r from-[#00D66F] to-[#00F47F] shadow-[inset_0_-2px_0_rgba(0,0,0,0.3)] transition-all duration-500 ease-out"
+                style={{ width: `${progressPercentage}%` }}
+              />
+            </div>
+          </div>
+
         </div>
       </div>
 
-      {/* Menu Items */}
       <div className="flex-1 overflow-y-auto px-4 py-6">
         <div className="max-w-md mx-auto space-y-3">
-          {/* Achievements */}
-          <button className="w-full bg-white border-4 border-[#2C2C2C] rounded-xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] active:shadow-[2px_2px_0_0_rgba(0,0,0,0.25)] active:translate-x-0.5 active:translate-y-0.5 transition-all">
+          {/* Achievements Button */}
+          <button 
+            onClick={onAchievementsClick}
+            className="w-full bg-white border-4 border-[#2C2C2C] rounded-xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] active:shadow-[2px_2px_0_0_rgba(0,0,0,0.25)] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-[#FFC800] border-3 border-[#2C2C2C] rounded-lg flex items-center justify-center">
@@ -99,10 +133,7 @@ export function AvatarScreen({
                   </p>
                 </div>
               </div>
-              <ChevronRight
-                className="w-6 h-6 text-[#2C2C2C]"
-                strokeWidth={3}
-              />
+              <ChevronRight className="w-6 h-6 text-[#2C2C2C]" strokeWidth={3} />
             </div>
           </button>
 
@@ -111,9 +142,7 @@ export function AvatarScreen({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-[#00D66F] border-3 border-[#2C2C2C] rounded-lg flex items-center justify-center">
-                  <span className="font-['Press_Start_2P'] text-lg text-white">
-                    ✏️
-                  </span>
+                  <span className="font-['Press_Start_2P'] text-lg text-white">✏️</span>
                 </div>
                 <div className="text-left">
                   <p className="font-['Nunito'] font-bold text-[#2C2C2C]">
@@ -124,10 +153,7 @@ export function AvatarScreen({
                   </p>
                 </div>
               </div>
-              <ChevronRight
-                className="w-6 h-6 text-[#2C2C2C]"
-                strokeWidth={3}
-              />
+              <ChevronRight className="w-6 h-6 text-[#2C2C2C]" strokeWidth={3} />
             </div>
           </button>
 
@@ -154,10 +180,7 @@ export function AvatarScreen({
                   </p>
                 </div>
               </div>
-              <ChevronRight
-                className="w-6 h-6 text-[#2C2C2C]"
-                strokeWidth={3}
-              />
+              <ChevronRight className="w-6 h-6 text-[#2C2C2C]" strokeWidth={3} />
             </div>
           </button>
 

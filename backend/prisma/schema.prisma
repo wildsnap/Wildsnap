@@ -19,6 +19,7 @@ model User {
   updatedAt         DateTime          @updatedAt
   username          String            @unique
   clerkId           String            @unique
+  settings          UserSettings?
   scanLogs          ScanLog[]
   achievements      UserAchievement[]
   collections       UserCollection[]
@@ -125,6 +126,8 @@ model UserAchievement {
   completedAt     DateTime?
   achievement     Achievement @relation(fields: [achievementId], references: [id])
   user            User        @relation(fields: [userId], references: [id])
+
+  @@unique([userId, achievementId])
 }
 
 model Item {
@@ -148,14 +151,14 @@ model UserInventory {
 }
 
 model UserSettings {
-  id           Int        @id @default(autoincrement())
-  hasMusic     Boolean    @default(true)
-  hasSound     Boolean    @default(true)
-  hasVibration Boolean    @default(true)
-  screenMode   ScreenMode @default(light)
-  language     Language   @default(en)
-  userId       Int        @unique
-  User         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            Int        @id @default(autoincrement())
+  hasMusic      Boolean    @default(true)
+  hasSound      Boolean    @default(true)
+  hasVibration  Boolean    @default(true)
+  screenMode    ScreenMode @default(light)
+  language      Language   @default(en)
+  userId        Int        @unique
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum Rarity {
@@ -179,12 +182,12 @@ enum ItemType {
   REAL_WORLD_COUPON
 }
 
-enum Language {
-  en
-  th
-}
-
 enum ScreenMode {
   light
   dark
+}
+
+enum Language {
+  en
+  th
 }
