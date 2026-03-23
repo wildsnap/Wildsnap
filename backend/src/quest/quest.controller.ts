@@ -10,7 +10,7 @@ import {
   BadRequestException
 } from '@nestjs/common';
 import { QuestService } from './quest.service';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../users/users.service';
 
 @Controller('quests')
 export class QuestController {
