@@ -7,5 +7,6 @@ import { UsersModule } from '../users/users.module';
   imports: [UsersModule],
   controllers: [QuestController],
   providers: [QuestService],
+  exports: [QuestService]
 })
 export class QuestModule {}

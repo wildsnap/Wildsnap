@@ -3,6 +3,10 @@ import axios from 'axios';
 import FormData from 'form-data';
 import { PrismaService } from '../prisma/prisma.service';
 import { SupabaseService } from './supabase.service';
+import { QuestService } from '../quest/quest.service';
+import { AchievementService } from '../achievement/achievement.service';
+import { MissionType } from 'generated/prisma/enums'; // Adjust path if needed
+import { Achievement } from 'generated/prisma/client';
 
 const CONFIDENCE_THRESHOLD = 85;
 
@@ -15,6 +19,8 @@ export class AiService {
   constructor(
     private prisma: PrismaService,
     private supabaseService: SupabaseService,
+    private questService: QuestService,
+    private achievementService: AchievementService,
   ) {}
 
   async predict(file: Express.Multer.File, clerkId: string) {
@@ -37,6 +43,27 @@ export class AiService {
         uploadedImageUrl,
       );
 
+      let unlockedAchievements :Achievement[] = [];
+
+      if (animal) {
+        const user = await this.prisma.user.findUnique({ where: { clerkId } });
+        
+        if (user) {
+          // 1. Trigger generic "Scan" achievement progress
+          const scanAchievements = await this.achievementService.updateProgress(user.id, 'SCAN_ANIMAL', 1);
+          unlockedAchievements.push(...scanAchievements);
+
+          if (isFirstDiscovery) {
+            // 2. Trigger "New Discovery" achievement progress
+            const discoveryAchievements = await this.achievementService.updateProgress(user.id, 'NEW_DISCOVERY', 1);
+            unlockedAchievements.push(...discoveryAchievements);
+
+            // 3. Trigger specific quest (Mission) progress
+            await this.questService.handleActionTrigger(user.id, 'SCAN' as MissionType, animal.id);
+          }
+        }
+      }
+
       if (!animal) {
         this.logger.warn(
           `Animal '${normalizedName}' found by AI but missing in DB.`,
@@ -44,11 +71,15 @@ export class AiService {
         return this.formatUnknownResponse(normalizedName, aiData.confidence);
       }
 
-      return this.formatSuccessResponse(
+      const response = this.formatSuccessResponse(
         animal,
         aiData.confidence,
         isFirstDiscovery,
       );
+
+      // Return the standard response PLUS any newly unlocked achievements
+      return { ...response, unlockedAchievements };
+
     } catch (error) {
       this.logger.error('AI Service Error', error.message);
       throw new Error('Failed to connect to AI Model Service');
@@ -70,7 +101,6 @@ export class AiService {
     return data;
   }
 
-  // ScanLog & Collection
   private async processUserScan(
     clerkId: string,
     animal: any,
@@ -82,7 +112,6 @@ export class AiService {
     const user = await this.prisma.user.findUnique({ where: { clerkId } });
     if (!user) return false;
 
-    // Save into ScanLog
     await this.prisma.scanLog.create({
       data: {
         userId: user.id,
@@ -93,7 +122,6 @@ export class AiService {
       },
     });
 
-    // If animal is found and confidence is above threshold, add to collection and reward points
     if (animal) {
       const existingCollection = await this.prisma.userCollection.findUnique({
         where: { userId_animalId: { userId: user.id, animalId: animal.id } },
@@ -116,13 +144,12 @@ export class AiService {
             },
           }),
         ]);
-        return true; // First discovery
+        return true; 
       }
     }
-    return false; // Everfound or Unknown animal
+    return false; 
   }
 
-  // จัดรูปแบบข้อมูลตอบกลับ (เจอสัตว์ใน DB)
   private formatSuccessResponse(
     animal: any,
     confidence: number,
@@ -143,7 +170,6 @@ export class AiService {
     };
   }
 
-  // จัดรูปแบบข้อมูลตอบกลับ (ไม่เจอสัตว์ใน DB)
   private formatUnknownResponse(className: string, confidence: number) {
     return {
       class_name: className,
