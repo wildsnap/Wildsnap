@@ -25,7 +25,6 @@ model User {
   collections       UserCollection[]
   inventory         UserInventory[]
   missions          UserMission[]
-  UserSettings      UserSettings?
 }
 
 model Animal {
