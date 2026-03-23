@@ -19,12 +19,12 @@ model User {
   updatedAt         DateTime          @updatedAt
   username          String            @unique
   clerkId           String            @unique
-  settings          UserSettings?
   scanLogs          ScanLog[]
   achievements      UserAchievement[]
   collections       UserCollection[]
   inventory         UserInventory[]
   missions          UserMission[]
+  settings          UserSettings?
 }
 
 model Animal {
@@ -150,14 +150,14 @@ model UserInventory {
 }
 
 model UserSettings {
-  id            Int        @id @default(autoincrement())
-  hasMusic      Boolean    @default(true)
-  hasSound      Boolean    @default(true)
-  hasVibration  Boolean    @default(true)
-  screenMode    ScreenMode @default(light)
-  language      Language   @default(en)
-  userId        Int        @unique
-  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           Int        @id @default(autoincrement())
+  hasMusic     Boolean    @default(true)
+  hasSound     Boolean    @default(true)
+  hasVibration Boolean    @default(true)
+  screenMode   ScreenMode @default(light)
+  language     Language   @default(en)
+  userId       Int        @unique
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum Rarity {
