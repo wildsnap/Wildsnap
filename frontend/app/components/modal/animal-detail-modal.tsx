@@ -1,4 +1,5 @@
-import { X, MapPin, Sparkles, Coins, BookOpen } from "lucide-react";
+import { useSettings } from "@/app/contexts/AudioContext";
+import { X, MapPin, Sparkles, Coins } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -19,6 +20,7 @@ interface AnimalDetailModalProps {
 
 export function AnimalDetailModal({ animal, onClose }: AnimalDetailModalProps) {
   const [isFactRevealed, setIsFactRevealed] = useState(false);
+  const { playClickSound } = useSettings();
 
   const getRarityTheme = (level: string = "COMMON") => {
     const upper = level.toUpperCase();
@@ -78,12 +80,18 @@ export function AnimalDetailModal({ animal, onClose }: AnimalDetailModalProps) {
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
+        onClick={() => {
+          playClickSound();
+          onClose();
+        }}
       />
 
       <div className="relative w-full max-w-md bg-[#F5F8F0] border-t-4 border-l-4 border-r-4 border-[#2C2C2C] rounded-t-[2.5rem] shadow-[0_-8px_0_0_rgba(0,0,0,0.3)] animate-[slideUp_0.4s_cubic-bezier(0.16,1,0.3,1)] max-h-[90vh] overflow-y-auto overflow-x-hidden pb-8">
         <button
-          onClick={onClose}
+          onClick={() => {
+            playClickSound();
+            onClose();
+          }}
           className="absolute top-5 right-5 z-20 w-10 h-10 bg-[#FF4757] border-4 border-[#2C2C2C] rounded-full flex items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,0.4)] active:scale-95 active:shadow-none active:translate-y-1 transition-all"
         >
           <X className="w-5 h-5 text-white" strokeWidth={4} />

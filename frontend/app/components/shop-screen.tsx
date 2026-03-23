@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Loader2, Ghost, Check, AlertCircle, Package } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
 import { InventoryScreen } from "./inventory-screen";
+import { useSettings } from "../contexts/AudioContext";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3100";
 
@@ -34,6 +35,7 @@ export function ShopScreen({
   const [loading, setLoading] = useState(true);
   const [purchasingItemId, setPurchasingItemId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"shop" | "inventory">("shop");
+  const { playClickSound, playSuccessSound } = useSettings();
 
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
@@ -120,6 +122,7 @@ export function ShopScreen({
             message: `You successfully got ${purchasedItem?.name || "this item"}!`,
             imageUrl: purchasedItem?.imageUrl,
           });
+          playSuccessSound();
         }
       } else {
         setModalState({
@@ -160,7 +163,10 @@ export function ShopScreen({
               {(["character", "pet"] as const).map((cat) => (
                 <button
                   key={cat}
-                  onClick={() => setActiveTab(cat)}
+                  onClick={() => {
+                    playClickSound();
+                    setActiveTab(cat);
+                  }}
                   className={`flex-1 border-3 border-[#2C2C2C] rounded-xl py-2 flex items-center justify-center gap-1.5 transition-all duration-200 shadow-[2px_2px_0_0_rgba(0,0,0,0.3)]
                     ${
                       activeTab === cat
@@ -189,9 +195,10 @@ export function ShopScreen({
             </div>
 
             <button
-              onClick={() =>
-                setViewMode((prev) => (prev === "shop" ? "inventory" : "shop"))
-              }
+              onClick={() => {
+                playClickSound();
+                setViewMode((prev) => (prev === "shop" ? "inventory" : "shop"));
+              }}
               className={`w-14 flex flex-col items-center justify-center border-3 border-[#2C2C2C] rounded-xl transition-all duration-200 shadow-[2px_2px_0_0_rgba(0,0,0,0.3)]
               ${
                 viewMode === "inventory"
@@ -278,7 +285,10 @@ export function ShopScreen({
                         return (
                           <button
                             disabled={isOwned || !canAfford || isPurchasing}
-                            onClick={() => handlePurchase(specialItem.id)}
+                            onClick={() => {
+                              playClickSound();
+                              handlePurchase(specialItem.id);
+                            }}
                             className={`border-4 border-[#2C2C2C] rounded-2xl px-4 py-3 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] transition-all flex items-center justify-center min-w-[100px]
                               ${isPurchasing ? "bg-white" : isOwned ? "bg-[#00D66F] text-white cursor-default translate-y-1 shadow-none" : canAfford ? "bg-white hover:bg-gray-50 active:translate-y-1 active:shadow-none" : "bg-[#C0C0C0] opacity-80 cursor-not-allowed"}`}
                           >
@@ -370,7 +380,10 @@ export function ShopScreen({
 
                         <button
                           disabled={isOwned || !canAfford || isPurchasing}
-                          onClick={() => handlePurchase(item.id)}
+                          onClick={() => {
+                            playClickSound();
+                            handlePurchase(item.id);
+                          }}
                           className={`w-full border-2 border-[#2C2C2C] rounded-xl py-1.5 flex items-center justify-center gap-1.5 transition-all
                             ${
                               isOwned
@@ -477,7 +490,10 @@ export function ShopScreen({
             </p>
 
             <button
-              onClick={() => setModalState({ ...modalState, isOpen: false })}
+              onClick={() => {
+                playClickSound();
+                setModalState({ ...modalState, isOpen: false });
+              }}
               className={`w-full border-4 border-[#2C2C2C] rounded-xl px-6 py-4 relative z-10 shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all flex justify-center items-center gap-2
                 ${modalState.type === "success" ? "bg-[#FFC800] hover:bg-[#FFD54F]" : "bg-white hover:bg-gray-50"}`}
             >

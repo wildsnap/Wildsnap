@@ -22,6 +22,7 @@ interface Settings {
 interface SettingsContextType extends Settings {
   updateSetting: (key: keyof Settings, value: any) => void;
   playClickSound: () => void;
+  playSuccessSound: () => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(
@@ -48,6 +49,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
+  const successSoundRef = useRef<HTMLAudioElement | null>(null);
 
   // Fetch Database
   useEffect(() => {
@@ -90,6 +92,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
       clickSoundRef.current = new Audio(
         "https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/sounds/click_sound.mp3",
+      );
+
+      successSoundRef.current = new Audio(
+        "https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/sounds/success_sound.mp3",
       );
     }
   }, []);
@@ -163,9 +169,16 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const playSuccessSound = () => {
+    if (settings.hasSound && successSoundRef.current) {
+      successSoundRef.current.currentTime = 0;
+      successSoundRef.current.play().catch(() => {});
+    }
+  };
+
   return (
     <SettingsContext.Provider
-      value={{ ...settings, updateSetting, playClickSound }}
+      value={{ ...settings, updateSetting, playClickSound, playSuccessSound }}
     >
       {children}
     </SettingsContext.Provider>
