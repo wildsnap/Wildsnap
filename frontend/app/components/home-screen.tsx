@@ -8,19 +8,32 @@ import { useAuth } from "@clerk/nextjs";
 
 interface HomeScreenProps {
   onScanClick: () => void;
-  coins: number;
   username: string;
+  lvl?: number;
+  missionData: any;
 }
 
-export function HomeScreen({ onScanClick, coins, username }: HomeScreenProps) {
+const getRankTitle = (level: number = 1) => {
+  if (level >= 4) return "Master Explorer";
+  if (level >= 3) return "Pro Tracker";
+  if (level >= 2) return "Junior Scout";
+  return "Novice Ranger"; // Level 1 or below
+};
+
+export function HomeScreen({
+  onScanClick,
+  username,
+  lvl,
+  missionData,
+}: HomeScreenProps) {
   const { userId: clerkId, isLoaded } = useAuth();
 
   const [stats, setStats] = useState({ unlocked: 0, total: 0 });
-  const [displayCoins, setDisplayCoins] = useState(coins);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!isLoaded) return;
+    console.log(missionData);
 
     const fetchDashboardData = async () => {
       try {
@@ -28,11 +41,11 @@ export function HomeScreen({ onScanClick, coins, username }: HomeScreenProps) {
         const apiUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:3100";
 
+        console.log("Fetching dashboard data from:", apiUrl);
         const animalsRes = await axios.get(`${apiUrl}/animals`);
         const totalAnimals = animalsRes.data.length;
 
         let unlockedAnimals = 0;
-        let userCoins = coins;
 
         if (clerkId) {
           try {
@@ -43,19 +56,9 @@ export function HomeScreen({ onScanClick, coins, username }: HomeScreenProps) {
           } catch (err) {
             console.error("Failed to fetch collection stats", err);
           }
-
-          try {
-            const userRes = await axios.get(`${apiUrl}/users/${clerkId}`);
-            if (userRes.data && userRes.data.currentPoints !== undefined) {
-              userCoins = userRes.data.currentPoints;
-            }
-          } catch (err) {
-            console.error("Failed to fetch user coins", err);
-          }
         }
 
         setStats({ unlocked: unlockedAnimals, total: totalAnimals });
-        setDisplayCoins(userCoins);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       } finally {
@@ -64,7 +67,7 @@ export function HomeScreen({ onScanClick, coins, username }: HomeScreenProps) {
     };
 
     fetchDashboardData();
-  }, [clerkId, isLoaded, coins]);
+  }, [clerkId, isLoaded]);
 
   return (
     <div className="flex flex-col min-h-full relative">
@@ -84,72 +87,98 @@ export function HomeScreen({ onScanClick, coins, username }: HomeScreenProps) {
         <div className="flex items-start justify-between">
           <div className="bg-black/40 border-2 border-white/20 backdrop-blur-sm rounded-xl px-3 py-2 flex items-center gap-2.5">
             <div className="w-9 h-9 bg-[#FF4757] border-2 border-white rounded-md flex items-center justify-center shadow-inner">
+              {/* 3. Inject the dynamic level here */}
               <span className="font-['Press_Start_2P'] text-[11px] text-white">
-                Lv.5
+                Lv.{lvl}
               </span>
             </div>
             <div>
               <h1 className="font-['Press_Start_2P'] text-sm text-white drop-shadow-[2px_2px_0_#2C2C2C]">
                 {username}
               </h1>
+              {/* Optional: You could even change the "Explorer" title based on level later! */}
               <p className="font-['Nunito'] text-[11px] text-[#FFC800] font-black mt-0.5 uppercase tracking-widest drop-shadow-md">
-                Explorer
+                {getRankTitle(lvl)}
               </p>
             </div>
-          </div>
-
-          <div className="flex items-center gap-2 bg-[#FFFDF5] border-4 border-[#2C2C2C] rounded-full px-4 py-2 shadow-[4px_4px_0_0_rgba(0,0,0,0.3)]">
-            <img
-              src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/coin.png"
-              alt="Coin"
-              className="w-5 h-5 object-contain drop-shadow-sm animate-[pulse_2s_infinite]"
-            />
-            <span className="font-['Press_Start_2P'] text-sm text-[#2C2C2C]">
-              {isLoading ? "..." : displayCoins.toLocaleString()}
-            </span>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="relative z-0 flex-1 flex flex-col items-center px-4 pt-3 pb-24">
-        {/* Avatar Character */}
-        <div className="relative mb-4 mt-auto">
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-5 bg-black/20 rounded-[100%] blur-sm" />
-          <div className="relative z-10 animate-[bounce_2s_ease-in-out_infinite]">
-            <PixelAvatar className="w-36 h-28 drop-shadow-[0_10px_10px_rgba(0,0,0,0.3)]" />
-          </div>
-        </div>
-
+      <main className="relative z-0 flex-1 flex flex-col items-center px-4 pt-3 pb-24 mb-20">
         {/* Quest Badge */}
         <div className="bg-[#FFF9C4] border-4 border-[#2C2C2C] rounded-xl p-3 mb-5 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] max-w-xs w-full relative overflow-hidden group cursor-pointer hover:-translate-y-1 transition-transform">
           <div className="absolute top-2 left-2 w-2 h-2 bg-[#FF4757] border border-[#2C2C2C] rounded-full" />
           <div className="absolute top-2 right-2 w-2 h-2 bg-[#FF4757] border border-[#2C2C2C] rounded-full" />
 
-          <div className="flex items-center gap-3 relative z-10 pt-1">
-            <div className="bg-[#FF9800] border-2 border-[#2C2C2C] rounded-lg p-1.5 shadow-inner">
-              <img
-                src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/star.png"
-                alt="Star"
-                className="w-6 h-6 object-contain drop-shadow-md"
-              />
-            </div>
-            <div className="flex-1">
-              <div className="flex justify-between items-end mb-1">
-                <p className="font-['Press_Start_2P'] text-[9px] text-[#2C2C2C] leading-loose">
-                  DAILY QUEST
+          {/* Fallback check in case missionData is null/loading */}
+          {missionData && missionData.mission ? (
+            <div className="flex items-center gap-3 relative z-10 pt-1">
+              <div className="bg-[#FF9800] border-2 border-[#2C2C2C] rounded-lg p-1.5 shadow-inner">
+                {/* Dynamically load the animal image, with a fallback to the star */}
+                <img
+                  src={
+                    missionData.mission.animal?.imageUrl ||
+                    "https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/star.png"
+                  }
+                  alt={missionData.mission.animal?.name || "Quest Target"}
+                  className="w-8 h-8 object-contain drop-shadow-md brightness-0"
+                />
+              </div>
+              <div className="flex-1">
+                <div className="flex justify-between items-end mb-1">
+                  {/* Wrapped the label and title in a column flex container */}
+                  <div className="flex flex-col">
+                    <span className="font-['Nunito'] text-[10px] text-[#754F26] font-extrabold uppercase tracking-widest mb-0.5">
+                      Tutorial
+                    </span>
+                    <p className="font-['Press_Start_2P'] text-[14px] text-[#2C2C2C] leading-loose">
+                      {missionData.mission.title || ""}
+                    </p>
+                  </div>
+
+                  <span className="font-['Press_Start_2P'] text-[12px] text-[#00D66F]">
+                    {missionData.currentProgress} /{" "}
+                    {missionData.mission.targetValue}
+                  </span>
+                </div>
+
+                <p className="font-['Nunito'] text-xs text-[#754F26] font-bold mb-1.5 line-clamp-2">
+                  {missionData.mission.description}
                 </p>
-                <span className="font-['Press_Start_2P'] text-[9px] text-[#00D66F]">
-                  1/3
-                </span>
-              </div>
-              <p className="font-['Nunito'] text-xs text-[#754F26] font-bold mb-1.5">
-                Scan 3 wild animals
-              </p>
-              <div className="w-full h-2.5 bg-[#E0E0E0] border-2 border-[#2C2C2C] rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-[#00D66F] to-[#00F47F] w-[33%] border-r-2 border-[#2C2C2C]" />
+
+                <div className="w-full h-2.5 bg-[#E0E0E0] border-2 border-[#2C2C2C] rounded-full overflow-hidden">
+                  {/* Dynamic Progress Bar */}
+                  <div
+                    className="h-full bg-gradient-to-r from-[#00D66F] to-[#00F47F] border-r-2 border-[#2C2C2C] transition-all duration-500 ease-out"
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        (missionData.currentProgress /
+                          Math.max(1, missionData.mission.targetValue)) *
+                          100,
+                      )}%`,
+                    }}
+                  />
+                </div>
               </div>
             </div>
+          ) : (
+            // Loading state for the badge
+            <div className="flex items-center justify-center h-16 relative z-10">
+              <p className="font-['Nunito'] text-sm text-[#754F26] font-bold animate-pulse">
+                Tutorial complete
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Avatar Character */}
+        <div className="relative mb-10 mt-auto">
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-5 bg-black/20 rounded-[100%] blur-sm" />
+          <div className="relative z-10 animate-[bounce_2s_ease-in-out_infinite]">
+            <PixelAvatar className="w-36 h-28 drop-shadow-[0_10px_10px_rgba(0,0,0,0.3)]" />
           </div>
         </div>
 
@@ -191,30 +220,6 @@ export function HomeScreen({ onScanClick, coins, username }: HomeScreenProps) {
               <span className="text-[10px]">✨</span>
             </div>
           </button>
-        </div>
-
-        {/* Stats HUD */}
-        <div className="mt-6 mb-auto bg-white/90 backdrop-blur-md border-4 border-[#2C2C2C] rounded-xl px-5 py-3 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] flex items-center justify-between w-full max-w-[280px]">
-          <div className="text-center flex-1">
-            <div className="font-['Press_Start_2P'] text-xl text-[#FF4757] drop-shadow-sm">
-              {isLoading ? "..." : stats.unlocked}
-            </div>
-            <div className="font-['Nunito'] text-[10px] text-[#2C2C2C] font-black mt-1 uppercase tracking-wider">
-              Unlocked
-            </div>
-          </div>
-
-          <div className="w-1 h-8 bg-[#2C2C2C] rounded-full opacity-20 mx-4" />
-
-          <div className="text-center flex-1">
-            {/* 🌟 แสดงจำนวนสัตว์ทั้งหมดในระบบ */}
-            <div className="font-['Press_Start_2P'] text-xl text-[#00A3FF] drop-shadow-sm">
-              {isLoading ? "..." : stats.total}
-            </div>
-            <div className="font-['Nunito'] text-[10px] text-[#2C2C2C] font-black mt-1 uppercase tracking-wider">
-              Total
-            </div>
-          </div>
         </div>
       </main>
     </div>

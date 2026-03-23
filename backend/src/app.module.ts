@@ -10,6 +10,10 @@ import { AiModule } from './ai/ai.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { CollectionsModule } from './collections/collections.module';
 import { AnimalsModule } from './animals/animals.module';
+import { ItemModule } from './item/item.module';
+import { SettingsModule } from './settings/settings.module';
+import { QuestModule } from './quest/quest.module';
+import { AchievementModule } from './achievement/achievement.module';
 
 @Module({
   imports: [
@@ -21,6 +25,10 @@ import { AnimalsModule } from './animals/animals.module';
     ClerkModule,
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
+    ItemModule,
+    SettingsModule,
+    QuestModule,
+    AchievementModule,
   ],
   controllers: [AppController],
   providers: [AppService, UsersService],

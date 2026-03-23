@@ -20,9 +20,9 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private userService: UsersService) {}
 
-  @Get('profile')
-  getProfile() {
-    return this.userService.findUserById(1);
+  @Get()
+  getProfile(@Headers('x-user-id') clerkId: string) {
+    return this.userService.findOneByClerkId(clerkId);
   }
 
   @Get(':clerkId')

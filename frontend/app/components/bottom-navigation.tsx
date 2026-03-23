@@ -1,4 +1,7 @@
+"use client";
+
 import { Camera, Grid3x3, User, ShoppingBag } from 'lucide-react';
+import { useSettings } from '../contexts/AudioContext';
 
 interface BottomNavigationProps {
   activeTab: 'scan' | 'collection' | 'avatar' | 'shop';
@@ -6,15 +9,16 @@ interface BottomNavigationProps {
 }
 
 export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationProps) {
+  const { playClickSound } = useSettings();
   const tabs = [
     { id: 'scan' as const, icon: Camera, label: 'Scan' },
     { id: 'collection' as const, icon: Grid3x3, label: 'Collection' },
-    { id: 'avatar' as const, icon: User, label: 'Avatar' },
     { id: 'shop' as const, icon: ShoppingBag, label: 'Shop' },
+    { id: 'avatar' as const, icon: User, label: 'Avatar' },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#754F26] border-t-4 border-[#2C2C2C] shadow-[0_-4px_0_0_rgba(0,0,0,0.3)]">
+    <nav className="fixed bottom-0 left-0 right-0 bg-[#754F26] border-t-4 border-[#2C2C2C] shadow-[0_-4px_0_0_rgba(0,0,0,0.3)] z-50">
       <div className="max-w-md mx-auto px-2 py-2">
         <div className="flex justify-around items-center gap-2">
           {tabs.map((tab) => {
@@ -24,7 +28,10 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
             return (
               <button
                 key={tab.id}
-                onClick={() => onTabChange(tab.id)}
+                onClick={() => {
+                  playClickSound();
+                  onTabChange(tab.id);
+                }}
                 className={`
                   flex-1 flex flex-col items-center gap-1 py-2 min-h-[64px] justify-center
                   transition-all duration-200 active:scale-95
