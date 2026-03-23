@@ -1,27 +1,31 @@
 "use client";
 
-import { useState } from "react";
 import { X, Volume2, Globe, Bell, Settings } from "lucide-react";
+import { useSettings } from "../contexts/AudioContext";
 
 interface SettingsModalProps {
   onClose: () => void;
 }
 
 export function SettingsModal({ onClose }: SettingsModalProps) {
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [musicEnabled, setMusicEnabled] = useState(true);
-  const [vibrationEnabled, setVibrationEnabled] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState("english");
+  const {
+    hasMusic,
+    hasSound,
+    hasVibration,
+    screenMode,
+    language,
+    updateSetting,
+    playClickSound,
+  } = useSettings();
 
   const languages = [
     {
-      id: "english",
+      id: "en",
       name: "English",
       flag: "https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/settings/flag_en.png",
     },
     {
-      id: "thai",
+      id: "th",
       name: "Thai",
       flag: "https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/settings/flag_th.png",
     },
@@ -35,7 +39,10 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     onChange: (value: boolean) => void;
   }) => (
     <button
-      onClick={() => onChange(!enabled)}
+      onClick={() => {
+        onChange(!enabled);
+        playClickSound();
+      }}
       className={`
         relative w-14 h-8 rounded-full border-3 border-[#2C2C2C] transition-colors duration-200 shadow-inner shrink-0
         ${enabled ? "bg-[#00D66F]" : "bg-[#D1D5DB]"}
@@ -62,7 +69,10 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         {/* Header */}
         <div className="relative bg-[#FF9800] border-b-4 border-[#2C2C2C] p-5 rounded-t-[1.75rem] shrink-0 z-20">
           <button
-            onClick={onClose}
+            onClick={() => {
+              playClickSound();
+              onClose();
+            }}
             className="absolute top-4 right-4 w-9 h-9 bg-[#FF4757] border-3 border-[#2C2C2C] rounded-full flex items-center justify-center shadow-[2px_2px_0_0_rgba(0,0,0,0.4)] active:scale-95 active:shadow-none active:translate-y-0.5 transition-all z-10"
           >
             <X className="w-5 h-5 text-white" strokeWidth={4} />
@@ -97,7 +107,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 <div className="flex items-center gap-3">
                   <img
                     src={
-                      soundEnabled
+                      hasSound
                         ? "https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/settings/sound_on.png"
                         : "https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/settings/sound_off.png"
                     }
@@ -113,10 +123,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                     </p>
                   </div>
                 </div>
-                <ToggleSwitch
-                  enabled={soundEnabled}
-                  onChange={setSoundEnabled}
-                />
+                <ToggleSwitch enabled={hasSound} onChange={(val) => updateSetting("hasSound", val)} />
               </div>
 
               {/* Music */}
@@ -124,7 +131,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 <div className="flex items-center gap-3">
                   <img
                     src={
-                      musicEnabled
+                      hasMusic
                         ? "https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/settings/music_on.png"
                         : "https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/settings/music_off.png"
                     }
@@ -140,10 +147,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                     </p>
                   </div>
                 </div>
-                <ToggleSwitch
-                  enabled={musicEnabled}
-                  onChange={setMusicEnabled}
-                />
+                <ToggleSwitch enabled={hasMusic} onChange={(val) => updateSetting("hasMusic", val)} />
               </div>
             </div>
           </div>
@@ -165,7 +169,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 <div className="flex items-center gap-3">
                   <img
                     src={
-                      vibrationEnabled
+                      hasVibration
                         ? "https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/settings/vibrate_on.png"
                         : "https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/settings/vibrate_off.png"
                     }
@@ -182,8 +186,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                   </div>
                 </div>
                 <ToggleSwitch
-                  enabled={vibrationEnabled}
-                  onChange={setVibrationEnabled}
+                  enabled={hasVibration}
+                  onChange={(val) => updateSetting("hasVibration", val)}
                 />
               </div>
 
@@ -192,7 +196,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 <div className="flex items-center gap-3">
                   <img
                     src={
-                      darkMode
+                      screenMode === "dark"
                         ? "https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/settings/screen-mode_dark.png"
                         : "https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/settings/screen-mode_light.png"
                     }
@@ -208,7 +212,10 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                     </p>
                   </div>
                 </div>
-                <ToggleSwitch enabled={darkMode} onChange={setDarkMode} />
+                <ToggleSwitch 
+                  enabled={screenMode === "dark"} 
+                  onChange={(val) => updateSetting("screenMode", val ? "dark" : "light")} 
+                />
               </div>
             </div>
           </div>
@@ -228,12 +235,15 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
               {languages.map((lang) => (
                 <button
                   key={lang.id}
-                  onClick={() => setSelectedLanguage(lang.id)}
+                  onClick={() => {
+                    playClickSound();
+                    updateSetting("language", lang.id);
+                  }}
                   className={`
                     relative flex items-center justify-start gap-2 p-3 rounded-xl border-3 border-[#2C2C2C]
                     transition-all duration-200 
                     ${
-                      selectedLanguage === lang.id
+                      language === lang.id
                         ? "bg-[#FFC800] translate-y-1 shadow-none"
                         : "bg-[#F5F5F5] hover:bg-[#E0E0E0] shadow-[0_4px_0_0_rgba(0,0,0,0.2)] active:translate-y-1 active:shadow-none"
                     }
@@ -245,12 +255,12 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                     className="w-10 h-10 object-contain drop-shadow-sm"
                   />
                   <span
-                    className={`font-['Nunito'] font-black text-sm ${selectedLanguage === lang.id ? "text-[#2C2C2C]" : "text-[#757575]"}`}
+                    className={`font-['Nunito'] font-black text-sm ${language === lang.id ? "text-[#2C2C2C]" : "text-[#757575]"}`}
                   >
                     {lang.name}
                   </span>
 
-                  {selectedLanguage === lang.id && (
+                  {language === lang.id && (
                     <div className="absolute -top-2 -right-2 w-5 h-5 bg-[#00D66F] border-2 border-[#2C2C2C] rounded-full flex items-center justify-center z-10">
                       <span className="text-white text-[10px] font-bold">
                         ✓
@@ -264,7 +274,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
           {/* App Info Footer */}
           <div className="bg-[#FFFDF5] border-3 border-[#D1D5DB] border-dashed rounded-xl p-2 text-center relative z-10 mt-6">
-            <p className="text-xs text-[#A3A3A3]">WILDSNAP V 1.0.0</p>
+            <p className="text-xs text-[#A3A3A3] font-bold">WILDSNAP V 1.0.0</p>
           </div>
         </div>
       </div>
