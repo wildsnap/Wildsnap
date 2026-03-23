@@ -15,7 +15,6 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User with Clerk ID ${clerkId} not found`);
     }
-    console.log("fjnfjkanfjknsajkfnaksjnfak")
 
     // 2. Call our new upsert function to ensure all achievements are initialized
     await this.syncUserAchievements(user.id);

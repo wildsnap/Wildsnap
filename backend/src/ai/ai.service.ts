@@ -59,7 +59,7 @@ export class AiService {
             unlockedAchievements.push(...discoveryAchievements);
 
             // 3. Trigger specific quest (Mission) progress
-            await this.questService.handleActionTrigger(user.id, 'SCAN' as MissionType, animal.id);
+            await this.questService.handleActionTrigger(user.id, 'SCAN_ANIMAL' as MissionType, animal.id);
           }
         }
       }
