@@ -125,6 +125,8 @@ model UserAchievement {
   completedAt     DateTime?
   achievement     Achievement @relation(fields: [achievementId], references: [id])
   user            User        @relation(fields: [userId], references: [id])
+
+  @@unique([userId, achievementId])
 }
 
 model Item {
