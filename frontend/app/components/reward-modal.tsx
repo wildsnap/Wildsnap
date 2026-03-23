@@ -1,6 +1,8 @@
 import { X, Star, Sparkles, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useSettings } from "../contexts/AudioContext";
+import { useEffect } from "react";
 
 interface RewardModalProps {
   isOpen: boolean;
@@ -31,6 +33,14 @@ export function RewardModal({
   isNewDiscovery = true,
   confidence = 0,
 }: RewardModalProps) {
+  const { playSuccessSound, playClickSound } = useSettings();
+
+  useEffect(() => {
+    if (isOpen && isNewDiscovery) {
+      playSuccessSound();
+    }
+  }, [isOpen, isNewDiscovery, playSuccessSound]);
+
   if (!isOpen) return null;
 
   const renderAnimalPixelArt = () => {
@@ -121,7 +131,10 @@ export function RewardModal({
               </div>
 
               <button
-                onClick={onClose}
+                onClick={() => {
+                  playClickSound();
+                  onClose();
+                }}
                 className="absolute top-2 right-2 w-8 h-8 bg-[#FF4757] border-2 border-[#2C2C2C] rounded-full flex items-center justify-center active:scale-95 transition-transform hover:bg-[#ff6b79] shadow-inner"
               >
                 <X className="w-4 h-4 text-white" strokeWidth={3} />
@@ -308,7 +321,10 @@ export function RewardModal({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.7 }}
-                onClick={onClose}
+                onClick={() => {
+                  playClickSound();
+                  onClose();
+                }}
                 className={`
                   w-full border-4 border-[#2C2C2C] rounded-xl py-3.5
                   shadow-[4px_4px_0_0_rgba(0,0,0,0.3)]

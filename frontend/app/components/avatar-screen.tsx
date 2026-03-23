@@ -1,6 +1,8 @@
 import { ChevronRight, Crown, Settings } from "lucide-react";
 import { PixelAvatar } from "./pixel-avatar";
 import img8BitGraphicsPixelsSceneWithForest from "../images/8-bit-graphics-pixels-scene-with-forest.png";
+import { useState } from "react";
+import { SettingsModal } from "./settings-modal";
 
 const getRankTitle = (level: number = 1) => {
   if (level >= 4) return "Master Explorer";
@@ -28,6 +30,7 @@ export function AvatarScreen({
   targetExp,
   onAchievementsClick,
 }: AvatarScreenProps) {
+  const [showSettings, setShowSettings] = useState(false);
   // Prevent division by zero and calculate percentage
   const progressPercentage = Math.min(100, (currentExp / Math.max(1, targetExp)) * 100);
 
@@ -155,11 +158,18 @@ export function AvatarScreen({
           </button>
 
           {/* Settings */}
-          <button className="w-full bg-white border-4 border-[#2C2C2C] rounded-xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] active:shadow-[2px_2px_0_0_rgba(0,0,0,0.25)] active:translate-x-0.5 active:translate-y-0.5 transition-all">
+          <button
+            className="w-full bg-white border-4 border-[#2C2C2C] rounded-xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] active:shadow-[2px_2px_0_0_rgba(0,0,0,0.25)] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+            onClick={() => setShowSettings(true)}
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-[#00A3FF] border-3 border-[#2C2C2C] rounded-lg flex items-center justify-center">
-                  <Settings className="w-6 h-6 text-white" strokeWidth={3} />
+                <div className="w-12 h-12 bg-[#a3cfe9] border-3 border-[#2C2C2C] rounded-lg flex items-center justify-center">
+                  <img
+                    src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/setting.png"
+                    alt="Setting Icon"
+                    className="w-10 h-10 object-contain drop-shadow-sm"
+                  />
                 </div>
                 <div className="text-left">
                   <p className="font-['Nunito'] font-bold text-[#2C2C2C]">
@@ -192,6 +202,8 @@ export function AvatarScreen({
           </div>
         </div>
       </div>
+
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
     </div>
   );
 }

@@ -6,6 +6,7 @@ import axios from "axios";
 import { useAuth } from "@clerk/nextjs";
 import Image from "next/image";
 import { AnimalDetailModal } from "./modal/animal-detail-modal";
+import { useSettings } from "../contexts/AudioContext";
 
 interface Animal {
   id: number;
@@ -31,7 +32,10 @@ interface CollectionScreenProps {
   refreshTrigger?: number;
 }
 
-export function CollectionScreen({ onAnimalClick, refreshTrigger = 0 }: CollectionScreenProps) {
+export function CollectionScreen({
+  onAnimalClick,
+  refreshTrigger = 0,
+}: CollectionScreenProps) {
   const { userId: clerkId, isLoaded } = useAuth();
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [progress, setProgress] = useState<Progress>({
@@ -42,6 +46,7 @@ export function CollectionScreen({ onAnimalClick, refreshTrigger = 0 }: Collecti
   const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { playClickSound } = useSettings();
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -147,7 +152,10 @@ export function CollectionScreen({ onAnimalClick, refreshTrigger = 0 }: Collecti
       <div className="flex flex-col h-full bg-[#F5F8F0] items-center justify-center pb-20 px-4 text-center">
         <p className="font-['Nunito'] text-red-500 font-bold mb-4">{error}</p>
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => {
+            playClickSound();
+            window.location.reload();
+          }}
           className="bg-[#FFC800] border-4 border-[#2C2C2C] px-6 py-2 rounded-xl font-['Press_Start_2P'] text-xs shadow-[4px_4px_0_0_rgba(0,0,0,0.2)] active:translate-y-1 active:shadow-none"
         >
           RETRY
@@ -186,6 +194,7 @@ export function CollectionScreen({ onAnimalClick, refreshTrigger = 0 }: Collecti
               key={animal.id}
               onClick={() => {
                 if (animal.isUnlocked) {
+                  playClickSound();
                   setSelectedAnimal(animal);
                   onAnimalClick(animal.id);
                 }

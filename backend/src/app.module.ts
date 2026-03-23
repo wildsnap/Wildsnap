@@ -11,6 +11,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { CollectionsModule } from './collections/collections.module';
 import { AnimalsModule } from './animals/animals.module';
 import { ItemModule } from './item/item.module';
+import { SettingsModule } from './settings/settings.module';
 import { QuestModule } from './quest/quest.module';
 import { AchievementModule } from './achievement/achievement.module';
 
@@ -25,6 +26,7 @@ import { AchievementModule } from './achievement/achievement.module';
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     ItemModule,
+    SettingsModule,
     QuestModule,
     AchievementModule,
   ],
