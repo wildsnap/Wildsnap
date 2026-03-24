@@ -270,10 +270,10 @@ export function ScanScreen({ onClose, onAnimalDetected }: ScanScreenProps) {
 
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-8 pb-32 pointer-events-none">
           <div className="text-center">
-            <p className="font-['Nunito'] text-white text-lg font-bold mb-2">
+            <p className="font-['Press_Start_2P'] text-white text-lg font-bold mb-2">
               Point camera at an animal
             </p>
-            <p className="font-['Nunito'] text-white/80 text-sm">
+            <p className="font-['Press_Start_2P'] text-white/80 text-sm">
               Tap the button to identify
             </p>
           </div>

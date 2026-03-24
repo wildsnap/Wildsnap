@@ -21,8 +21,8 @@ export function InventoryScreen({ items, ownedItemIds }: InventoryScreenProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between bg-white/60 backdrop-blur-sm border-2 border-[#2C2C2C] rounded-lg px-3 py-2 animate-[slideDown_0.3s_ease-out]">
-        <span className="text-xs text-[#2C2C2C]">MY COLLECTION</span>
-        <span className="text-[#00D66F] text-md">
+        <span className="text-[12px] font-['Press_Start_2P'] text-[#2C2C2C]">MY COLLECTION</span>
+        <span className="text-[#00D66F] text-[14px] font-['Press_Start_2P']">
           {ownedItems.length} ITEMS
         </span>
       </div>
@@ -51,7 +51,7 @@ export function InventoryScreen({ items, ownedItemIds }: InventoryScreenProps) {
               </div>
 
               <div className="w-full text-center flex flex-col flex-1 justify-between">
-                <p className="text-xs font-black leading-tight line-clamp-2 mb-2 min-h-[2rem] text-[#00A854]">
+                <p className="text-[10px] font-['Press_Start_2P'] font-black leading-tight line-clamp-2 mb-2 min-h-[2rem] text-[#00A854]">
                   {item.name}
                 </p>
 
@@ -60,7 +60,7 @@ export function InventoryScreen({ items, ownedItemIds }: InventoryScreenProps) {
                   className="w-full border-2 border-[#2C2C2C] rounded-xl py-1.5 flex items-center justify-center gap-1.5 bg-[#00D66F] shadow-none cursor-default"
                 >
                   <Check className="w-3 h-3 text-white" strokeWidth={4} />
-                  <span className="text-[8px] text-white pt-0.5">OWNED</span>
+                  <span className="text-[8px] font-['Press_Start_2P'] text-white pt-0.5">OWNED</span>
                 </button>
               </div>
             </div>
@@ -73,7 +73,7 @@ export function InventoryScreen({ items, ownedItemIds }: InventoryScreenProps) {
             alt="Bag Empty"
             className="w-24 h-24 object-contain animate-[bounce_3s_ease-in-out_infinite] drop-shadow-[0_10px_10px_rgba(0,0,0,0.2)] opacity-90"
           />
-          <p className="text-lg text-[#754F26] text-center leading-loose">
+          <p className="text-lg text-[#754F26] text-center leading-loose font-['Press_Start_2P']">
             YOUR BAG IS EMPTY!
             <br />
             GO BUY SOMETHING.

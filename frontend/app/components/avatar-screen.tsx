@@ -2,6 +2,7 @@ import { ChevronRight, Crown } from "lucide-react";
 import img8BitGraphicsPixelsSceneWithForest from "../images/8-bit-graphics-pixels-scene-with-forest.png";
 import { useState } from "react";
 import { SettingsModal } from "./settings-modal";
+import { useSettings } from "../contexts/AudioContext";
 
 // Define the type so the component knows what 'inventory' looks like
 import type { InventoryItem } from "../page";
@@ -37,6 +38,7 @@ export function AvatarScreen({
   onEditAvatarClick,
 }: AvatarScreenProps) {
   const [showSettings, setShowSettings] = useState(false);
+  // Prevent division by zero and calculate percentage
   const progressPercentage = Math.min(
     100,
     (currentExp / Math.max(1, targetExp)) * 100,
@@ -46,6 +48,7 @@ export function AvatarScreen({
   const equippedHead = inventory?.find((i) => i.isEquipped && i.item.type === "HEAD")?.item.imageUrl;
   const equippedBody = inventory?.find((i) => i.isEquipped && i.item.type === "BODY")?.item.imageUrl;
   const equippedLeg = inventory?.find((i) => i.isEquipped && i.item.type === "LEG")?.item.imageUrl;
+  const { playClickSound } = useSettings();
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-[#F5F8F0] to-[#E8F5E9] pb-20">
@@ -62,7 +65,7 @@ export function AvatarScreen({
         <div className="relative px-6 py-8">
           <div className="absolute top-4 right-4 bg-[#FFC800] border-3 border-[#2C2C2C] rounded-full w-16 h-16 flex flex-col items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,0.3)] z-20">
             <Crown className="w-6 h-6 text-[#2C2C2C]" fill="#2C2C2C" />
-            <span className="font-['Press_Start_2P'] text-xs text-[#2C2C2C] mt-1">
+            <span className="font-['Press_Start_2P'] text-[10px] text-[#2C2C2C] mt-1">
               {level}
             </span>
           </div>
@@ -99,7 +102,7 @@ export function AvatarScreen({
           <h1 className="font-['Press_Start_2P'] text-xl text-white text-center drop-shadow-[3px_3px_0_rgba(0,0,0,0.5)] mb-2 relative z-10">
             {username}
           </h1>
-          <p className="font-['Nunito'] text-[#FFC800] text-center font-bold relative z-10">
+          <p className="font-['Press_Start_2P'] text-[#FFC800] text-center font-bold">
             {getRankTitle(level)}
           </p>
 
@@ -108,7 +111,7 @@ export function AvatarScreen({
               <div className="font-['Press_Start_2P'] text-2xl text-[#FFC800] drop-shadow-[2px_2px_0_rgba(0,0,0,0.5)]">
                 {totalAnimals}
               </div>
-              <div className="font-['Nunito'] text-white text-xs font-bold mt-1">
+              <div className="font-['Press_Start_2P'] text-white text-[10px] font-bold mt-1">
                 Animals
               </div>
             </div>
@@ -134,6 +137,7 @@ export function AvatarScreen({
               </span>
             </div>
 
+            {/* The Bar Track */}
             <div className="w-full h-4 bg-[#2C2C2C] p-[2px] shadow-[4px_4px_0_0_rgba(0,0,0,0.3)]">
               <div
                 className="h-full bg-gradient-to-r from-[#00D66F] to-[#00F47F] shadow-[inset_0_-2px_0_rgba(0,0,0,0.3)] transition-all duration-500 ease-out"
@@ -148,56 +152,77 @@ export function AvatarScreen({
         <div className="max-w-md mx-auto space-y-3">
           {/* Achievements Button */}
           <button
-            onClick={onAchievementsClick}
+            onClick={() => {
+              playClickSound();
+              onAchievementsClick();
+            }}
             className="w-full bg-white border-4 border-[#2C2C2C] rounded-xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] active:shadow-[2px_2px_0_0_rgba(0,0,0,0.25)] active:translate-x-0.5 active:translate-y-0.5 transition-all"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-[#FFC800] border-3 border-[#2C2C2C] rounded-lg flex items-center justify-center">
-                  <Crown className="w-6 h-6 text-[#2C2C2C]" strokeWidth={3} />
+                <div className="w-12 h-12 bg-[#feefb8] border-3 border-[#2C2C2C] rounded-lg flex items-center justify-center">
+                  <img
+                    src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/achievement.png"
+                    alt="Trophy Icon"
+                    className="w-10 h-10 object-contain drop-shadow-sm"
+                  />
                 </div>
                 <div className="text-left">
-                  <p className="font-['Nunito'] font-bold text-[#2C2C2C]">
+                  <p className="font-['Press_Start_2P'] font-bold text-[#2C2C2C] text-[12px]">
                     Achievements
                   </p>
-                  <p className="font-['Nunito'] text-xs text-[#754F26]">
+                  <p className="font-['Press_Start_2P'] text-[#754F26] text-[10px]">
                     View your badges
                   </p>
                 </div>
               </div>
-              <ChevronRight className="w-6 h-6 text-[#2C2C2C]" strokeWidth={3} />
+              <ChevronRight
+                className="w-6 h-6 text-[#2C2C2C]"
+                strokeWidth={3}
+              />
             </div>
           </button>
 
-          {/* Edit Avatar Button */}
+          {/* Edit Avatar */}
           <button
-            onClick={onEditAvatarClick}
+            onClick={() => {
+              onEditAvatarClick();
+              playClickSound();
+            }}
             className="w-full bg-white border-4 border-[#2C2C2C] rounded-xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] active:shadow-[2px_2px_0_0_rgba(0,0,0,0.25)] active:translate-x-0.5 active:translate-y-0.5 transition-all"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-[#00D66F] border-3 border-[#2C2C2C] rounded-lg flex items-center justify-center">
-                  <span className="font-['Press_Start_2P'] text-lg text-white">
-                    ✏️
-                  </span>
+                <div className="w-12 h-12 bg-[#c3f8de] border-3 border-[#2C2C2C] rounded-lg flex items-center justify-center">
+                  <img
+                    src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/edit.png"
+                    alt="Edit Icon"
+                    className="w-10 h-10 object-contain drop-shadow-sm"
+                  />
                 </div>
                 <div className="text-left">
-                  <p className="font-['Nunito'] font-bold text-[#2C2C2C]">
+                  <p className="font-['Press_Start_2P'] font-bold text-[#2C2C2C] text-[12px]">
                     Edit Avatar
                   </p>
-                  <p className="font-['Nunito'] text-xs text-[#754F26]">
+                  <p className="font-['Press_Start_2P'] text-[10px] text-[#754F26]">
                     Customize your look
                   </p>
                 </div>
               </div>
-              <ChevronRight className="w-6 h-6 text-[#2C2C2C]" strokeWidth={3} />
+              <ChevronRight
+                className="w-6 h-6 text-[#2C2C2C]"
+                strokeWidth={3}
+              />
             </div>
           </button>
 
           {/* Settings Button */}
           <button
             className="w-full bg-white border-4 border-[#2C2C2C] rounded-xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] active:shadow-[2px_2px_0_0_rgba(0,0,0,0.25)] active:translate-x-0.5 active:translate-y-0.5 transition-all"
-            onClick={() => setShowSettings(true)}
+            onClick={() => {
+              playClickSound();
+              setShowSettings(true);
+            }}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -209,15 +234,18 @@ export function AvatarScreen({
                   />
                 </div>
                 <div className="text-left">
-                  <p className="font-['Nunito'] font-bold text-[#2C2C2C]">
+                  <p className="font-['Press_Start_2P'] font-bold text-[#2C2C2C] text-[12px]">
                     Settings
                   </p>
-                  <p className="font-['Nunito'] text-xs text-[#754F26]">
+                  <p className="font-['Press_Start_2P'] text-[10px] text-[#754F26]">
                     Sound, language & more
                   </p>
                 </div>
               </div>
-              <ChevronRight className="w-6 h-6 text-[#2C2C2C]" strokeWidth={3} />
+              <ChevronRight
+                className="w-6 h-6 text-[#2C2C2C]"
+                strokeWidth={3}
+              />
             </div>
           </button>
 

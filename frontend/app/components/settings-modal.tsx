@@ -96,7 +96,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
               <div className="bg-[#E3F2FD] p-1.5 rounded-lg border-2 border-[#2C2C2C]">
                 <Volume2 className="w-4 h-4 text-[#2196F3]" />
               </div>
-              <h3 className="font-['Press_Start_2P'] text-[10px] text-[#2C2C2C] pt-1">
+              <h3 className="font-['Press_Start_2P'] text-[12px] text-[#2C2C2C] pt-1">
                 AUDIO & MUSIC
               </h3>
             </div>
@@ -115,10 +115,10 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                     className="w-10 h-10 object-contain drop-shadow-sm"
                   />
                   <div>
-                    <p className="font-['Nunito'] font-black text-[#2C2C2C] text-sm">
+                    <p className="font-['Press_Start_2P'] font-black text-[#2C2C2C] text-[10px]">
                       Sound Effects
                     </p>
-                    <p className="font-['Nunito'] text-xs text-[#754F26] font-bold">
+                    <p className="font-['Press_Start_2P'] text-[8px] text-[#754F26] font-bold">
                       Clicks & Alerts
                     </p>
                   </div>
@@ -139,10 +139,10 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                     className="w-10 h-10 object-contain drop-shadow-sm"
                   />
                   <div>
-                    <p className="font-['Nunito'] font-black text-[#2C2C2C] text-sm">
+                    <p className="font-['Press_Start_2P'] font-black text-[#2C2C2C] text-[10px]">
                       Background Music
                     </p>
-                    <p className="font-['Nunito'] text-xs text-[#754F26] font-bold">
+                    <p className="font-['Press_Start_2P'] text-[#754F26] font-bold text-[8px]">
                       Game Soundtrack
                     </p>
                   </div>
@@ -158,7 +158,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
               <div className="bg-[#FFF3E0] p-1.5 rounded-lg border-2 border-[#2C2C2C]">
                 <Bell className="w-4 h-4 text-[#FF9800]" />
               </div>
-              <h3 className="font-['Press_Start_2P'] text-[10px] text-[#2C2C2C] pt-1">
+              <h3 className="font-['Press_Start_2P'] text-[12px] text-[#2C2C2C] pt-1">
                 PREFERENCES
               </h3>
             </div>
@@ -177,10 +177,10 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                     className="w-10 h-10 object-contain drop-shadow-sm"
                   />
                   <div>
-                    <p className="font-['Nunito'] font-black text-[#2C2C2C] text-sm">
+                    <p className="font-['Press_Start_2P'] font-black text-[#2C2C2C] text-[10px]">
                       Vibration
                     </p>
-                    <p className="font-['Nunito'] text-xs text-[#754F26] font-bold">
+                    <p className="font-['Press_Start_2P'] text-[#754F26] font-bold text-[8px]">
                       Haptic Feedback
                     </p>
                   </div>
@@ -204,10 +204,10 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                     className="w-10 h-10 object-contain drop-shadow-sm"
                   />
                   <div>
-                    <p className="font-['Nunito'] font-black text-[#2C2C2C] text-sm">
+                    <p className="font-['Press_Start_2P'] font-black text-[#2C2C2C] text-[10px]">
                       Dark Mode
                     </p>
-                    <p className="font-['Nunito'] text-xs text-[#754F26] font-bold">
+                    <p className="font-['Press_Start_2P'] text-[#754F26] font-bold text-[8px]">
                       Easy on the eyes
                     </p>
                   </div>
@@ -226,7 +226,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
               <div className="bg-[#E8F5E9] p-1.5 rounded-lg border-2 border-[#2C2C2C]">
                 <Globe className="w-4 h-4 text-[#4CAF50]" />
               </div>
-              <h3 className="font-['Press_Start_2P'] text-[10px] text-[#2C2C2C] pt-1">
+              <h3 className="font-['Press_Start_2P'] text-[12px] text-[#2C2C2C] pt-1">
                 LANGUAGE
               </h3>
             </div>
@@ -255,7 +255,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                     className="w-10 h-10 object-contain drop-shadow-sm"
                   />
                   <span
-                    className={`font-['Nunito'] font-black text-sm ${language === lang.id ? "text-[#2C2C2C]" : "text-[#757575]"}`}
+                    className={`font-['Press_Start_2P'] font-black text-[10px] ${language === lang.id ? "text-[#2C2C2C]" : "text-[#757575]"}`}
                   >
                     {lang.name}
                   </span>

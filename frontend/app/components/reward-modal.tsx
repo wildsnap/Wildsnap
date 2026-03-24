@@ -114,7 +114,7 @@ export function RewardModal({
                   {isNewDiscovery ? (
                     <>
                       <Sparkles className="w-5 h-5 text-white" />
-                      <p className="font-['Nunito'] text-white font-black text-sm uppercase tracking-wider">
+                      <p className="font-['Press_Start_2P'] text-white font-black text-[12px] uppercase tracking-wider">
                         New Discovery!
                       </p>
                       <Sparkles className="w-5 h-5 text-white" />
@@ -122,7 +122,7 @@ export function RewardModal({
                   ) : (
                     <>
                       <AlertCircle className="w-4 h-4 text-white" />
-                      <p className="font-['Nunito'] text-white font-bold text-xs uppercase tracking-widest">
+                      <p className="font-['Press_Start_2P'] text-white font-black text-[12px] uppercase tracking-widest">
                         Already in dex
                       </p>
                     </>
@@ -190,7 +190,7 @@ export function RewardModal({
                       </span>
                     </div>
                   )}
-                  <p className="text-center font-['Nunito'] text-xs font-bold italic text-[#A3A3A3] mt-2">
+                  <p className="text-center font-['Press_Start_2P'] text-[9px] font-bold italic text-[#A3A3A3] mt-2">
                     {scientificName}
                   </p>
                 </div>
@@ -224,13 +224,13 @@ export function RewardModal({
                   </motion.div>
 
                   <div className="bg-[#E8E8E8] border-2 border-[#D0D0D0] rounded-lg px-4 py-2 mt-2">
-                    <h3 className="font-['Press_Start_2P'] text-xs text-[#525252] text-center leading-relaxed max-w-[220px] truncate">
+                    <h3 className="font-['Press_Start_2P'] text-[10px] text-[#525252] text-center leading-relaxed max-w-[220px] truncate">
                       {animalName.toUpperCase()}
                     </h3>
                   </div>
 
                   {confidence > 0 && (
-                    <p className="font-['Nunito'] text-[10px] font-black uppercase text-[#A3A3A3] mt-3">
+                    <p className="font-['Press_Start_2P'] text-[10px] font-black uppercase text-[#A3A3A3] mt-3">
                       Scan Confidence: {confidence}%
                     </p>
                   )}
@@ -253,11 +253,11 @@ export function RewardModal({
                       alt="Book"
                       className="w-5 h-5 object-contain"
                     />
-                    <h3 className="font-['Press_Start_2P'] text-[9px] text-[#2C2C2C] pt-1">
+                    <h3 className="font-['Press_Start_2P'] text-[12px] text-[#2C2C2C] pt-1">
                       INFO LOG
                     </h3>
                   </div>
-                  <p className="font-['Nunito'] text-sm font-bold text-[#5C3D1F] leading-snug">
+                  <p className="font-['Press_Start_2P'] text-[10px] font-bold text-[#5C3D1F] leading-snug">
                     {description}
                   </p>
                 </div>
