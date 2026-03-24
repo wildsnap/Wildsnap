@@ -92,4 +92,53 @@ export class ItemService {
       },
     });
   }
+
+  async toggleEquip(clerkId: string, inventoryId: number | string) {
+    // 1. Force the URL param into a Number to prevent Prisma validation errors
+    const parsedInvId = Number(inventoryId);
+  
+    return this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUnique({ where: { clerkId } });
+      if (!user) throw new NotFoundException('User not found');
+  
+      // 2. Use parsedInvId for all Prisma queries
+      const targetInventory = await tx.userInventory.findFirst({
+        where: { id: parsedInvId, userId: user.id },
+        include: { item: true },
+      });
+  
+      if (!targetInventory) {
+        throw new NotFoundException('Item not found in your inventory');
+      }
+  
+      const isCurrentlyEquipped = targetInventory.isEquipped;
+      const itemType = targetInventory.item.type;
+  
+      if (!isCurrentlyEquipped) {
+        const currentlyEquipped = await tx.userInventory.findMany({
+          where: {
+            userId: user.id,
+            isEquipped: true,
+            item: { type: itemType }, 
+          },
+        });
+  
+        for (const equipped of currentlyEquipped) {
+          await tx.userInventory.update({
+            where: { id: equipped.id },
+            data: { isEquipped: false },
+          });
+        }
+      }
+  
+      // 3. Make sure to use parsedInvId here as well
+      const updatedInventory = await tx.userInventory.update({
+        where: { id: parsedInvId },
+        data: { isEquipped: !isCurrentlyEquipped },
+        include: { item: true },
+      });
+  
+      return { success: true, inventory: updatedInventory };
+    });
+  }
 }

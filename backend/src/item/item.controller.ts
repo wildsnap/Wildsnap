@@ -8,6 +8,8 @@ import {
   ParseEnumPipe,
   Request,
   Headers,
+  ParseIntPipe,
+  Patch,
 } from '@nestjs/common';
 import { ItemService } from './item.service';
 import { PurchaseItemDto } from './dto/purchaseData.dto';
@@ -50,5 +52,13 @@ export class ItemController {
     }
 
     return this.itemService.findOwnItems(clerkId, category);
+  }
+
+  @Patch('equip/:inventoryId')
+  async toggleEquip(
+    @Headers('x-user-id') clerkId: string,
+    @Param('inventoryId', ParseIntPipe) inventoryId: number,
+  ) {
+    return this.itemService.toggleEquip(clerkId, inventoryId);
   }
 }

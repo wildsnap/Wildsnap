@@ -177,7 +177,9 @@ enum MissionType {
 enum ItemType {
   AVATAR_OUTFIT
   AVATAR_ACCESSORY
-  ANIMAL_DECORATION
+  HEAD
+  BODY
+  LEG
   REAL_WORLD_COUPON
 }
 
