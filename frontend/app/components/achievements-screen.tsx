@@ -179,7 +179,7 @@ export function AchievementsScreen({
                   </div>
 
                   <p
-                    className={`font-['Nunito'] text-sm font-black mb-3 line-clamp-2 ${
+                    className={`font-['Press_Start_2P'] text-[8px] font-black mb-3 line-clamp-2 ${
                       achievement.isCompleted
                         ? "text-[#754F26]"
                         : "text-[#4A4A4A]"

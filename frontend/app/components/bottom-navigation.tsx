@@ -46,7 +46,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                   className={`w-6 h-6 ${isActive ? 'animate-[bounce_0.6s_ease-in-out]' : ''}`} 
                   strokeWidth={3}
                 />
-                <span className="font-['Nunito'] text-xs font-bold tracking-wide">
+                <span className="font-['Press_Start_2P'] text-[7px] font-bold tracking-wide">
                   {tab.label}
                 </span>
               </button>

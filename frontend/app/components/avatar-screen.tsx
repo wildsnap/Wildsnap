@@ -54,7 +54,7 @@ export function AvatarScreen({
         <div className="relative px-6 py-8">
           <div className="absolute top-4 right-4 bg-[#FFC800] border-3 border-[#2C2C2C] rounded-full w-16 h-16 flex flex-col items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,0.3)]">
             <Crown className="w-6 h-6 text-[#2C2C2C]" fill="#2C2C2C" />
-            <span className="font-['Press_Start_2P'] text-xs text-[#2C2C2C] mt-1">
+            <span className="font-['Press_Start_2P'] text-[10px] text-[#2C2C2C] mt-1">
               {level}
             </span>
           </div>
@@ -69,7 +69,7 @@ export function AvatarScreen({
           <h1 className="font-['Press_Start_2P'] text-xl text-white text-center drop-shadow-[3px_3px_0_rgba(0,0,0,0.5)] mb-2">
             {username}
           </h1>
-          <p className="font-['Nunito'] text-[#FFC800] text-center font-bold">
+          <p className="font-['Press_Start_2P'] text-[#FFC800] text-center font-bold">
             {getRankTitle(level)}
           </p>
 
@@ -78,7 +78,7 @@ export function AvatarScreen({
               <div className="font-['Press_Start_2P'] text-2xl text-[#FFC800] drop-shadow-[2px_2px_0_rgba(0,0,0,0.5)]">
                 {totalAnimals}
               </div>
-              <div className="font-['Nunito'] text-white text-xs font-bold mt-1">
+              <div className="font-['Press_Start_2P'] text-white text-[10px] font-bold mt-1">
                 Animals
               </div>
             </div>
@@ -136,10 +136,10 @@ export function AvatarScreen({
                   />
                 </div>
                 <div className="text-left">
-                  <p className="font-['Nunito'] font-bold text-[#2C2C2C]">
+                  <p className="font-['Press_Start_2P'] font-bold text-[#2C2C2C] text-[12px]">
                     Achievements
                   </p>
-                  <p className="font-['Nunito'] text-xs text-[#754F26]">
+                  <p className="font-['Press_Start_2P'] text-[#754F26] text-[10px]">
                     View your badges
                   </p>
                 </div>
@@ -168,10 +168,10 @@ export function AvatarScreen({
                   />
                 </div>
                 <div className="text-left">
-                  <p className="font-['Nunito'] font-bold text-[#2C2C2C]">
+                  <p className="font-['Press_Start_2P'] font-bold text-[#2C2C2C] text-[12px]">
                     Edit Avatar
                   </p>
-                  <p className="font-['Nunito'] text-xs text-[#754F26]">
+                  <p className="font-['Press_Start_2P'] text-[10px] text-[#754F26]">
                     Customize your look
                   </p>
                 </div>
@@ -201,10 +201,10 @@ export function AvatarScreen({
                   />
                 </div>
                 <div className="text-left">
-                  <p className="font-['Nunito'] font-bold text-[#2C2C2C]">
+                  <p className="font-['Press_Start_2P'] font-bold text-[#2C2C2C] text-[12px]">
                     Settings
                   </p>
-                  <p className="font-['Nunito'] text-xs text-[#754F26]">
+                  <p className="font-['Press_Start_2P'] text-[10px] text-[#754F26]">
                     Sound, language & more
                   </p>
                 </div>

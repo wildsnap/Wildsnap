@@ -88,7 +88,7 @@ export function HomeScreen({
           <div className="bg-black/40 border-2 border-white/20 backdrop-blur-sm rounded-xl px-3 py-2 flex items-center gap-2.5">
             <div className="w-9 h-9 bg-[#FF4757] border-2 border-white rounded-md flex items-center justify-center shadow-inner">
               {/* 3. Inject the dynamic level here */}
-              <span className="font-['Press_Start_2P'] text-[11px] text-white">
+              <span className="font-['Press_Start_2P'] text-[7px] text-white">
                 Lv.{lvl}
               </span>
             </div>
@@ -130,21 +130,21 @@ export function HomeScreen({
                 <div className="flex justify-between items-end mb-1">
                   {/* Wrapped the label and title in a column flex container */}
                   <div className="flex flex-col">
-                    <span className="font-['Nunito'] text-[10px] text-[#754F26] font-extrabold uppercase tracking-widest mb-0.5">
+                    <span className="font-['Press_Start_2P'] text-[10px] text-[#754F26] font-extrabold uppercase tracking-widest mb-0.5">
                       Tutorial
                     </span>
-                    <p className="font-['Press_Start_2P'] text-[14px] text-[#2C2C2C] leading-loose">
+                    <p className="font-['Press_Start_2P'] text-[10px] text-[#2C2C2C] leading-loose">
                       {missionData.mission.title || ""}
                     </p>
                   </div>
 
-                  <span className="font-['Press_Start_2P'] text-[12px] text-[#00D66F]">
+                  <span className="font-['Press_Start_2P'] text-[8px] text-[#00D66F]">
                     {missionData.currentProgress} /{" "}
                     {missionData.mission.targetValue}
                   </span>
                 </div>
 
-                <p className="font-['Nunito'] text-xs text-[#754F26] font-bold mb-1.5 line-clamp-2">
+                <p className="font-['Press_Start_2P'] text-[8px] text-[#754F26] font-bold mb-1.5 line-clamp-2">
                   {missionData.mission.description}
                 </p>
 
@@ -210,7 +210,7 @@ export function HomeScreen({
                 <span className="block font-['Press_Start_2P'] text-lg text-white drop-shadow-[2px_2px_0_rgba(0,0,0,0.5)] tracking-widest">
                   SCAN
                 </span>
-                <span className="block font-['Nunito'] text-sm text-[#2C2C2C] font-black mt-0.5 uppercase">
+                <span className="block font-['Press_Start_2P'] text-[10px] text-[#2C2C2C] font-black mt-0.5 uppercase">
                   Discover Animals!
                 </span>
               </div>

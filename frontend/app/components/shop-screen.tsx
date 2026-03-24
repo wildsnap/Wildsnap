@@ -215,7 +215,7 @@ export function ShopScreen({
                 alt={viewMode === "inventory" ? "Bag Open" : "Bag Closed"}
                 className="w-5 h-5 mb-0.5 object-contain drop-shadow-sm"
               />
-              <span className="text-xs">BAG</span>
+              <span className="text-[7px] font-['Press_Start_2P']">BAG</span>
             </button>
           </div>
         </div>
@@ -270,7 +270,7 @@ export function ShopScreen({
                           <p className="font-['Press_Start_2P'] text-sm text-[#2C2C2C] leading-snug mb-1">
                             {specialItem.name.toUpperCase()}
                           </p>
-                          <p className="font-['Nunito'] text-xs font-black text-[#FF4757] uppercase">
+                          <p className="font-['Press_Start_2P'] text-xs font-black text-[#FF4757] uppercase">
                             Rare Find!
                           </p>
                         </div>
@@ -300,7 +300,7 @@ export function ShopScreen({
                                   className="w-5 h-5 mb-0.5"
                                   strokeWidth={4}
                                 />
-                                <span className="text-sm">OWNED</span>
+                                <span className="text-[8px] font-['Press_Start_2P']">OWNED</span>
                               </div>
                             ) : (
                               <div className="flex flex-col items-center">
@@ -310,7 +310,7 @@ export function ShopScreen({
                                   alt="Coin"
                                 />
                                 <span
-                                  className={`text-sm ${!canAfford ? "text-[#FF4757]" : "text-[#2C2C2C]"}`}
+                                  className={`text-[10px] font-['Press_Start_2P'] ${!canAfford ? "text-[#FF4757]" : "text-[#2C2C2C]"}`}
                                 >
                                   {specialItem.price}
                                 </span>
@@ -372,7 +372,7 @@ export function ShopScreen({
 
                       <div className="w-full text-center flex flex-col flex-1 justify-between">
                         <p
-                          className={`font-['Nunito'] text-xs font-black leading-tight line-clamp-2 mb-2 min-h-[2rem] 
+                          className={`font-['Press_Start_2P'] text-[10px] font-black leading-tight line-clamp-2 mb-2 min-h-[2rem] 
                           ${isOwned ? "text-[#00A854]" : "text-[#2C2C2C]"}`}
                         >
                           {item.name}
@@ -485,7 +485,7 @@ export function ShopScreen({
                 : "PURCHASE FAILED"}
             </h2>
 
-            <p className="font-['Nunito'] text-[#2C2C2C] font-bold mb-8 text-sm leading-relaxed relative z-10">
+            <p className="font-['Press_Start_2P'] text-[#2C2C2C] font-bold mb-8 text-[10px] leading-relaxed relative z-10">
               {modalState.message}
             </p>
 

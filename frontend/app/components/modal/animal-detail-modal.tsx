@@ -120,10 +120,10 @@ export function AnimalDetailModal({ animal, onClose }: AnimalDetailModalProps) {
               </span>
             </div>
 
-            <h2 className="font-['Press_Start_2P'] text-2xl text-white text-center drop-shadow-[4px_4px_0_rgba(0,0,0,0.4)] leading-snug mb-2">
+            <h2 className="font-['Press_Start_2P'] text-[15px] text-white text-center drop-shadow-[4px_4px_0_rgba(0,0,0,0.4)] leading-snug mb-2">
               {animal.name}
             </h2>
-            <p className="font-['Nunito'] text-white/90 text-center font-bold italic text-base drop-shadow-md">
+            <p className="font-['Press_Start_2P'] text-[10px] text-white/90 text-center font-bold italic text-base drop-shadow-md">
               {scientificName}
             </p>
           </div>
@@ -161,7 +161,7 @@ export function AnimalDetailModal({ animal, onClose }: AnimalDetailModalProps) {
             </div>
 
             <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 bg-[#FFC800] border-4 border-[#2C2C2C] rounded-full px-5 py-2 shadow-[4px_4px_0_0_rgba(0,0,0,0.2)] whitespace-nowrap">
-              <span className="font-['Press_Start_2P'] text-sm text-[#2C2C2C]">
+              <span className="font-['Press_Start_2P'] text-[10px] text-[#2C2C2C]">
                 #{animal.id.toString().padStart(3, "0")}
               </span>
             </div>
@@ -188,7 +188,7 @@ export function AnimalDetailModal({ animal, onClose }: AnimalDetailModalProps) {
                   HABITAT
                 </span>
               </div>
-              <p className="font-['Nunito'] text-[15px] text-[#2C2C2C] font-black relative z-10 leading-tight">
+              <p className="font-['Press_Start_2P'] text-[10px] text-[#2C2C2C] font-black relative z-10 leading-tight">
                 {habitat}
               </p>
             </div>
@@ -209,7 +209,7 @@ export function AnimalDetailModal({ animal, onClose }: AnimalDetailModalProps) {
                   REWARD
                 </span>
               </div>
-              <p className="font-['Nunito'] text-[15px] text-[#2C2C2C] font-black relative z-10 leading-tight">
+              <p className="font-['Press_Start_2P'] text-[10px] text-[#2C2C2C] font-black relative z-10 leading-tight">
                 +{pointsReward} Pts
               </p>
             </div>
@@ -226,14 +226,14 @@ export function AnimalDetailModal({ animal, onClose }: AnimalDetailModalProps) {
                 DESCRIPTION
               </h3>
             </div>
-            <p className="font-['Nunito'] text-[14px] text-[#5C3D1F] font-bold leading-relaxed">
+            <p className="font-['Press_Start_2P'] text-[10px] text-[#5C3D1F] font-black leading-relaxed">
               {description}
             </p>
           </div>
 
           <div
             onClick={() => setIsFactRevealed(true)}
-            className={`relative border-4 border-[#2C2C2C] rounded-2xl p-5 shadow-[4px_4px_0_0_rgba(0,0,0,0.15)] transition-all duration-300 select-none ${
+            className={`relative border-4 mb-20 border-[#2C2C2C] rounded-2xl p-5 shadow-[4px_4px_0_0_rgba(0,0,0,0.15)] transition-all duration-300 select-none ${
               isFactRevealed
                 ? "bg-[#FFF9C4] cursor-default"
                 : "bg-[#2C2C2C] cursor-pointer hover:-translate-y-1 active:scale-95 active:translate-y-0"
@@ -264,7 +264,7 @@ export function AnimalDetailModal({ animal, onClose }: AnimalDetailModalProps) {
                     FUN FACT UNLOCKED!
                   </h3>
                 </div>
-                <p className="font-['Nunito'] text-sm text-[#5C3D1F] font-bold leading-relaxed italic animate-[slideUp_0.3s_ease-out]">
+                <p className="font-['Press_Start_2P'] text-[10px] text-[#5C3D1F] font-black leading-relaxed italic animate-[slideUp_0.3s_ease-out]">
                   "{funFact}"
                 </p>
               </div>
