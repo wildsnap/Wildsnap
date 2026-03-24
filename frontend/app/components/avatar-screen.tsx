@@ -3,6 +3,7 @@ import { PixelAvatar } from "./pixel-avatar";
 import img8BitGraphicsPixelsSceneWithForest from "../images/8-bit-graphics-pixels-scene-with-forest.png";
 import { useState } from "react";
 import { SettingsModal } from "./settings-modal";
+import { useSettings } from "../contexts/AudioContext";
 
 const getRankTitle = (level: number = 1) => {
   if (level >= 4) return "Master Explorer";
@@ -16,7 +17,7 @@ interface AvatarScreenProps {
   level: number;
   totalAnimals: number;
   achievements: number;
-  currentExp: number; 
+  currentExp: number;
   targetExp: number;
   onAchievementsClick: () => void;
 }
@@ -32,7 +33,11 @@ export function AvatarScreen({
 }: AvatarScreenProps) {
   const [showSettings, setShowSettings] = useState(false);
   // Prevent division by zero and calculate percentage
-  const progressPercentage = Math.min(100, (currentExp / Math.max(1, targetExp)) * 100);
+  const progressPercentage = Math.min(
+    100,
+    (currentExp / Math.max(1, targetExp)) * 100,
+  );
+  const { playClickSound } = useSettings();
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-[#F5F8F0] to-[#E8F5E9] pb-20">
@@ -98,7 +103,7 @@ export function AvatarScreen({
                 {currentExp} / {targetExp} P
               </span>
             </div>
-            
+
             {/* The Bar Track */}
             <div className="w-full h-4 bg-[#2C2C2C] p-[2px] shadow-[4px_4px_0_0_rgba(0,0,0,0.3)]">
               {/* The Bar Fill */}
@@ -108,21 +113,27 @@ export function AvatarScreen({
               />
             </div>
           </div>
-
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-6">
         <div className="max-w-md mx-auto space-y-3">
           {/* Achievements Button */}
-          <button 
-            onClick={onAchievementsClick}
+          <button
+            onClick={() => {
+              playClickSound();
+              onAchievementsClick();
+            }}
             className="w-full bg-white border-4 border-[#2C2C2C] rounded-xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] active:shadow-[2px_2px_0_0_rgba(0,0,0,0.25)] active:translate-x-0.5 active:translate-y-0.5 transition-all"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-[#FFC800] border-3 border-[#2C2C2C] rounded-lg flex items-center justify-center">
-                  <Crown className="w-6 h-6 text-[#2C2C2C]" strokeWidth={3} />
+                <div className="w-12 h-12 bg-[#feefb8] border-3 border-[#2C2C2C] rounded-lg flex items-center justify-center">
+                  <img
+                    src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/achievement.png"
+                    alt="Trophy Icon"
+                    className="w-10 h-10 object-contain drop-shadow-sm"
+                  />
                 </div>
                 <div className="text-left">
                   <p className="font-['Nunito'] font-bold text-[#2C2C2C]">
@@ -133,16 +144,28 @@ export function AvatarScreen({
                   </p>
                 </div>
               </div>
-              <ChevronRight className="w-6 h-6 text-[#2C2C2C]" strokeWidth={3} />
+              <ChevronRight
+                className="w-6 h-6 text-[#2C2C2C]"
+                strokeWidth={3}
+              />
             </div>
           </button>
 
           {/* Edit Avatar */}
-          <button className="w-full bg-white border-4 border-[#2C2C2C] rounded-xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] active:shadow-[2px_2px_0_0_rgba(0,0,0,0.25)] active:translate-x-0.5 active:translate-y-0.5 transition-all">
+          <button
+            onClick={() => {
+              playClickSound();
+            }}
+            className="w-full bg-white border-4 border-[#2C2C2C] rounded-xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] active:shadow-[2px_2px_0_0_rgba(0,0,0,0.25)] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-[#00D66F] border-3 border-[#2C2C2C] rounded-lg flex items-center justify-center">
-                  <span className="font-['Press_Start_2P'] text-lg text-white">✏️</span>
+                <div className="w-12 h-12 bg-[#c3f8de] border-3 border-[#2C2C2C] rounded-lg flex items-center justify-center">
+                  <img
+                    src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/edit.png"
+                    alt="Edit Icon"
+                    className="w-10 h-10 object-contain drop-shadow-sm"
+                  />
                 </div>
                 <div className="text-left">
                   <p className="font-['Nunito'] font-bold text-[#2C2C2C]">
@@ -153,14 +176,20 @@ export function AvatarScreen({
                   </p>
                 </div>
               </div>
-              <ChevronRight className="w-6 h-6 text-[#2C2C2C]" strokeWidth={3} />
+              <ChevronRight
+                className="w-6 h-6 text-[#2C2C2C]"
+                strokeWidth={3}
+              />
             </div>
           </button>
 
           {/* Settings */}
           <button
             className="w-full bg-white border-4 border-[#2C2C2C] rounded-xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] active:shadow-[2px_2px_0_0_rgba(0,0,0,0.25)] active:translate-x-0.5 active:translate-y-0.5 transition-all"
-            onClick={() => setShowSettings(true)}
+            onClick={() => {
+              playClickSound();
+              setShowSettings(true);
+            }}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -180,7 +209,10 @@ export function AvatarScreen({
                   </p>
                 </div>
               </div>
-              <ChevronRight className="w-6 h-6 text-[#2C2C2C]" strokeWidth={3} />
+              <ChevronRight
+                className="w-6 h-6 text-[#2C2C2C]"
+                strokeWidth={3}
+              />
             </div>
           </button>
 
