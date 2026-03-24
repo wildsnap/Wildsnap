@@ -72,7 +72,7 @@ export function HomeScreen({
   return (
     <div className="flex flex-col min-h-full relative">
       {/* Background */}
-      <div className="fixed inset-0 -z-10">
+      <div className="absolute inset-0 z-0">
         <img
           src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/home_bg.png"
           alt="Forest Background"
@@ -83,7 +83,7 @@ export function HomeScreen({
       </div>
 
       {/* Header: Player Status */}
-      <header className="relative z-0 px-4 pt-5 pb-2">
+      <header className="relative z-10 px-4 pt-5 pb-2">
         <div className="flex items-start justify-between">
           <div className="bg-black/40 border-2 border-white/20 backdrop-blur-sm rounded-xl px-3 py-2 flex items-center gap-2.5">
             <div className="w-9 h-9 bg-[#FF4757] border-2 border-white rounded-md flex items-center justify-center shadow-inner">
@@ -106,7 +106,7 @@ export function HomeScreen({
       </header>
 
       {/* Main Content */}
-      <main className="relative z-0 flex-1 flex flex-col items-center px-4 pt-3 pb-24 mb-20">
+      <main className="relative z-10 flex-1 flex flex-col items-center px-4 pt-3 pb-24 mb-20">
         {/* Quest Badge */}
         <div className="bg-[#FFF9C4] border-4 border-[#2C2C2C] rounded-xl p-3 mb-5 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] max-w-xs w-full relative overflow-hidden group cursor-pointer hover:-translate-y-1 transition-transform">
           <div className="absolute top-2 left-2 w-2 h-2 bg-[#FF4757] border border-[#2C2C2C] rounded-full" />
