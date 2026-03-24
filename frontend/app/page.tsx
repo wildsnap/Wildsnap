@@ -11,6 +11,7 @@ import { ShopScreen } from "./components/shop-screen";
 import { UnlockAnimation } from "./components/animations/unlock-animation";
 import { useCoin } from "./components/providers/CoinContext";
 import { AchievementToast } from "./components/achievement-toast";
+import { EditAvatarScreen } from "./components/edit-avatar-screen";
 import {
   AchievementsScreen,
   AchievementData,
@@ -18,8 +19,9 @@ import {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3100";
 
-interface AnimalData {
-  id?: number; // NEW: Added ID to track the specific animal
+// --- Types ---
+export interface AnimalData {
+  id?: number; 
   name: string;
   confidence: number;
   funFact?: string;
@@ -31,6 +33,17 @@ interface AnimalData {
   coins?: number;
   capturedImage?: string;
   isNewDiscovery?: boolean;
+}
+
+export interface InventoryItem {
+  id: number;
+  isEquipped: boolean;
+  item: {
+    id: number;
+    name: string;
+    type: "HEAD" | "BODY" | "LEG";
+    imageUrl: string;
+  };
 }
 
 const calculateLevel = (points: number) => {
@@ -50,7 +63,7 @@ const calculateNextLevelTarget = (points: number) => {
 export default function Home() {
   const { user: clerkUser, isLoaded: isClerkLoaded } = useUser();
   const [activeTab, setActiveTab] = useState<"scan" | "collection" | "avatar" | "shop">("scan");
-  const [profileView, setProfileView] = useState<"avatar" | "achievements">("avatar");
+  const [profileView, setProfileView] = useState<"avatar" | "achievements" | "wardrobe">("avatar");
 
   const [showScanScreen, setShowScanScreen] = useState(false);
   const [showRewardModal, setShowRewardModal] = useState(false);
@@ -64,16 +77,19 @@ export default function Home() {
   const [activeMission, setActiveMission] = useState<any>(null);
   const [isLoadingData, setIsLoadingData] = useState(true);
 
-  // NEW: State to track if the current scan completed the active quest
   const [isQuestCompleted, setIsQuestCompleted] = useState(false);
 
   const [achievements, setAchievements] = useState<AchievementData[]>([]);
   const [isAchievementsLoading, setIsAchievementsLoading] = useState(true);
   const [achievementsError, setAchievementsError] = useState<string | null>(null);
 
+  // Global Inventory State
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+
   const { coins, setCoins } = useCoin();
   const [currentAnimal, setCurrentAnimal] = useState<AnimalData | null>(null);
 
+  // --- Fetch Functions ---
   const fetchUserData = async () => {
     if (!clerkUser?.id) return;
     try {
@@ -107,9 +123,31 @@ export default function Home() {
     }
   };
 
+  const fetchInventoryData = async () => {
+    if (!clerkUser?.id) return;
+    try {
+      const headers = { "x-user-id": clerkUser.id };
+      
+      const [headRes, bodyRes, legRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/item/my-items/HEAD`, { headers }),
+        fetch(`${API_BASE_URL}/item/my-items/BODY`, { headers }),
+        fetch(`${API_BASE_URL}/item/my-items/LEG`, { headers }),
+      ]);
+
+      const headData = headRes.ok ? await headRes.json() : [];
+      const bodyData = bodyRes.ok ? await bodyRes.json() : [];
+      const legData = legRes.ok ? await legRes.json() : [];
+
+      setInventory([...headData, ...bodyData, ...legData]);
+      
+    } catch (error) {
+      console.error("Error fetching inventory data:", error);
+    }
+  };
+
   const loadInitialData = async () => {
     setIsLoadingData(true);
-    await Promise.all([fetchUserData(), fetchMissionData()]);
+    await Promise.all([fetchUserData(), fetchMissionData(), fetchInventoryData()]);
     setIsLoadingData(false);
   };
 
@@ -166,7 +204,7 @@ export default function Home() {
     }
 
     const detectedAnimal: AnimalData = {
-      id: data.id, // Set the ID from the backend
+      id: data.id,
       name: data.class_name,
       confidence: data.confidence,
       funFact: data.fun_fact,
@@ -180,10 +218,8 @@ export default function Home() {
       isNewDiscovery: data.isNewDiscovery,
     };
 
-    // --- NEW: Smart Quest Check ---
     let completedQuest = false;
     if (activeMission && activeMission.mission) {
-      // Check if the mission wanted THIS specific animal, OR if it just wanted ANY animal scan
       const isTargetAnimal = activeMission.mission.animalId === data.id;
       const isAnyAnimal = !activeMission.mission.animalId && activeMission.mission.missionType === 'SCAN_ANIMAL';
       
@@ -212,6 +248,7 @@ export default function Home() {
   const handlePurchaseSuccess = (newBalance: number) => {
     setCoins(newBalance);
     fetchUserData();
+    fetchInventoryData(); 
   };
 
   const handleRewardModalClose = () => {
@@ -226,7 +263,7 @@ export default function Home() {
   const handleUnlockComplete = () => {
     setShowUnlockAnimation(false);
     setCurrentAnimal(null);
-    setIsQuestCompleted(false); // Reset the state
+    setIsQuestCompleted(false);
   };
 
   const displayUsername = dbUser?.username || clerkUser?.firstName || "Explorer";
@@ -272,15 +309,23 @@ export default function Home() {
             achievements={dbUser?._count?.achievements || 0}
             currentExp={dbUser?.totalPointsEarned || 0}
             targetExp={calculateNextLevelTarget(dbUser?.totalPointsEarned || 0)}
+            inventory={inventory}
             onAchievementsClick={() => setProfileView("achievements")}
+            onEditAvatarClick={() => setProfileView("wardrobe")}
           />
-        ) : (
+        ) : profileView === "achievements" ? (
           <AchievementsScreen
             achievements={achievements}
             isLoading={isAchievementsLoading}
             error={achievementsError}
             onBack={() => setProfileView("avatar")}
             onRetry={fetchUserAchievements}
+          />
+        ) : (
+          <EditAvatarScreen 
+            inventory={inventory}
+            onSaveSuccess={fetchInventoryData}
+            onBack={() => setProfileView("avatar")}
           />
         )}
       </div>
@@ -331,7 +376,7 @@ export default function Home() {
         imageUrl={currentAnimal?.imageUrl}
         activeMission={activeMission}
         onFetchNextMission={fetchMissionData} 
-        isQuestCompleted={isQuestCompleted} // NEW: Pass it down!
+        isQuestCompleted={isQuestCompleted}
       />
     </div>
   );

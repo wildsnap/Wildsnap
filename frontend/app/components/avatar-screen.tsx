@@ -1,15 +1,17 @@
-import { ChevronRight, Crown, Settings } from "lucide-react";
-import { PixelAvatar } from "./pixel-avatar";
+import { ChevronRight, Crown } from "lucide-react";
 import img8BitGraphicsPixelsSceneWithForest from "../images/8-bit-graphics-pixels-scene-with-forest.png";
 import { useState } from "react";
 import { SettingsModal } from "./settings-modal";
 import { useSettings } from "../contexts/AudioContext";
 
+// Define the type so the component knows what 'inventory' looks like
+import type { InventoryItem } from "../page";
+
 const getRankTitle = (level: number = 1) => {
   if (level >= 4) return "Master Explorer";
   if (level >= 3) return "Pro Tracker";
   if (level >= 2) return "Junior Scout";
-  return "Novice Ranger"; // Level 1 or below
+  return "Novice Ranger"; 
 };
 
 interface AvatarScreenProps {
@@ -19,7 +21,9 @@ interface AvatarScreenProps {
   achievements: number;
   currentExp: number;
   targetExp: number;
+  inventory: InventoryItem[]; // <-- ADDED THIS
   onAchievementsClick: () => void;
+  onEditAvatarClick: () => void;
 }
 
 export function AvatarScreen({
@@ -29,7 +33,9 @@ export function AvatarScreen({
   achievements,
   currentExp,
   targetExp,
+  inventory, // <-- ADDED THIS
   onAchievementsClick,
+  onEditAvatarClick,
 }: AvatarScreenProps) {
   const [showSettings, setShowSettings] = useState(false);
   // Prevent division by zero and calculate percentage
@@ -37,6 +43,11 @@ export function AvatarScreen({
     100,
     (currentExp / Math.max(1, targetExp)) * 100,
   );
+
+  // --- ADDED: Find currently equipped items ---
+  const equippedHead = inventory?.find((i) => i.isEquipped && i.item.type === "HEAD")?.item.imageUrl;
+  const equippedBody = inventory?.find((i) => i.isEquipped && i.item.type === "BODY")?.item.imageUrl;
+  const equippedLeg = inventory?.find((i) => i.isEquipped && i.item.type === "LEG")?.item.imageUrl;
   const { playClickSound } = useSettings();
 
   return (
@@ -52,7 +63,7 @@ export function AvatarScreen({
         </div>
 
         <div className="relative px-6 py-8">
-          <div className="absolute top-4 right-4 bg-[#FFC800] border-3 border-[#2C2C2C] rounded-full w-16 h-16 flex flex-col items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,0.3)]">
+          <div className="absolute top-4 right-4 bg-[#FFC800] border-3 border-[#2C2C2C] rounded-full w-16 h-16 flex flex-col items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,0.3)] z-20">
             <Crown className="w-6 h-6 text-[#2C2C2C]" fill="#2C2C2C" />
             <span className="font-['Press_Start_2P'] text-[10px] text-[#2C2C2C] mt-1">
               {level}
@@ -61,19 +72,41 @@ export function AvatarScreen({
 
           <div className="flex justify-center mb-4">
             <div className="relative">
-              <div className="absolute -inset-6 bg-gradient-to-b from-[#FFC800]/30 to-transparent rounded-full blur-2xl" />
-              <PixelAvatar className="w-40 h-28 relative z-10" />
+              {/* Glow Effect */}
+              <div className="absolute -inset-10 bg-gradient-to-b from-[#FFC800]/40 to-transparent rounded-full blur-2xl z-0" />
+              
+              {/* --- ADDED: Render Character Character --- */}
+              <div className="relative z-10 w-32 h-40 flex flex-col items-center justify-center">
+                {/* Fallback box if nothing is equipped */}
+                {!equippedHead && !equippedBody && !equippedLeg && (
+                  <div className="w-20 h-20 bg-black/20 border-4 border-dashed border-white/40 rounded-xl flex items-center justify-center">
+                    <span className="text-3xl">👤</span>
+                  </div>
+                )}
+                
+                {/* Render parts sequentially to stack them properly */}
+                {equippedHead && (
+                  <img src={equippedHead} className="h-[30%] w-auto object-contain z-30 drop-shadow-md" alt="Head" />
+                )}
+                {equippedBody && (
+                  <img src={equippedBody} className="h-[30%] w-auto object-contain z-20 drop-shadow-md" alt="Body" />
+                )}
+                {equippedLeg && (
+                  <img src={equippedLeg} className="h-[40%] w-auto object-contain z-10 -mt-2 drop-shadow-md" alt="Legs" />
+                )}
+              </div>
+
             </div>
           </div>
 
-          <h1 className="font-['Press_Start_2P'] text-xl text-white text-center drop-shadow-[3px_3px_0_rgba(0,0,0,0.5)] mb-2">
+          <h1 className="font-['Press_Start_2P'] text-xl text-white text-center drop-shadow-[3px_3px_0_rgba(0,0,0,0.5)] mb-2 relative z-10">
             {username}
           </h1>
           <p className="font-['Press_Start_2P'] text-[#FFC800] text-center font-bold">
             {getRankTitle(level)}
           </p>
 
-          <div className="flex justify-center gap-6 mt-6">
+          <div className="flex justify-center gap-6 mt-6 relative z-10">
             <div className="text-center">
               <div className="font-['Press_Start_2P'] text-2xl text-[#FFC800] drop-shadow-[2px_2px_0_rgba(0,0,0,0.5)]">
                 {totalAnimals}
@@ -93,7 +126,7 @@ export function AvatarScreen({
             </div>
           </div>
 
-          {/* 2. New Level Progress Bar Added Here */}
+          {/* Level Progress Bar */}
           <div className="mt-8 max-w-[260px] mx-auto w-full relative z-10">
             <div className="flex justify-between items-end mb-1 px-1">
               <span className="font-['Press_Start_2P'] text-[14px] text-white drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">
@@ -106,7 +139,6 @@ export function AvatarScreen({
 
             {/* The Bar Track */}
             <div className="w-full h-4 bg-[#2C2C2C] p-[2px] shadow-[4px_4px_0_0_rgba(0,0,0,0.3)]">
-              {/* The Bar Fill */}
               <div
                 className="h-full bg-gradient-to-r from-[#00D66F] to-[#00F47F] shadow-[inset_0_-2px_0_rgba(0,0,0,0.3)] transition-all duration-500 ease-out"
                 style={{ width: `${progressPercentage}%` }}
@@ -154,6 +186,7 @@ export function AvatarScreen({
           {/* Edit Avatar */}
           <button
             onClick={() => {
+              onEditAvatarClick();
               playClickSound();
             }}
             className="w-full bg-white border-4 border-[#2C2C2C] rounded-xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] active:shadow-[2px_2px_0_0_rgba(0,0,0,0.25)] active:translate-x-0.5 active:translate-y-0.5 transition-all"
@@ -183,7 +216,7 @@ export function AvatarScreen({
             </div>
           </button>
 
-          {/* Settings */}
+          {/* Settings Button */}
           <button
             className="w-full bg-white border-4 border-[#2C2C2C] rounded-xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)] active:shadow-[2px_2px_0_0_rgba(0,0,0,0.25)] active:translate-x-0.5 active:translate-y-0.5 transition-all"
             onClick={() => {
