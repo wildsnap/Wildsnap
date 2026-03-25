@@ -45,9 +45,9 @@ export function AvatarScreen({
   );
 
   // --- ADDED: Find currently equipped items ---
-  const equippedHead = inventory?.find((i) => i.isEquipped && i.item.type === "HEAD")?.item.imageUrl;
-  const equippedBody = inventory?.find((i) => i.isEquipped && i.item.type === "BODY")?.item.imageUrl;
-  const equippedLeg = inventory?.find((i) => i.isEquipped && i.item.type === "LEG")?.item.imageUrl;
+  const equippedHead = inventory?.find((i) => i.isEquipped && i?.item?.type === "HEAD")?.item?.imageUrl;
+  const equippedBody = inventory?.find((i) => i.isEquipped && i.item?.type === "BODY")?.item?.imageUrl;
+  const equippedLeg = inventory?.find((i) => i.isEquipped && i.item?.type === "LEG")?.item?.imageUrl;
   const { playClickSound } = useSettings();
 
   return (
