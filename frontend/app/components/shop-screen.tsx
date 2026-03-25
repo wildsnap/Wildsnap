@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Loader2, Ghost, Check, AlertCircle } from "lucide-react";
+import { Loader2, Ghost, Check, AlertCircle, Package } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
 import { InventoryScreen } from "./inventory-screen";
 import { useSettings } from "../contexts/AudioContext";
@@ -73,16 +73,26 @@ export function ShopScreen({
         const itemsData = await itemsRes.json();
         const ownedData = await ownedRes.json();
 
-        const safeItems = Array.isArray(itemsData)
-          ? itemsData
-          : itemsData?.data || [];
-        setItems(safeItems);
+        // 1. Define the IDs you want to hide from the shop
+        const HIDDEN_ITEM_IDS = [6, 10, 14];
 
-        if (itemsData && itemsData.length > 0) {
+        // 2. Safely get the items array
+        const rawItems = Array.isArray(itemsData) ? itemsData : (itemsData?.data || []);
+
+        // 3. FILTER the items to remove the hidden ones BEFORE saving to state
+        const visibleItems = rawItems.filter(
+          (item: ShopItem) => !HIDDEN_ITEM_IDS.includes(item.id)
+        );
+
+        // 4. Set the filtered items to your state
+        setItems(visibleItems);
+
+        // 5. Use `visibleItems` here so it doesn't accidentally pick a hidden item as the special offer
+        if (visibleItems.length > 0) {
           setSpecialItemIds((prev) => {
             if (!prev[activeTab]) {
-              const randomIndex = Math.floor(Math.random() * itemsData.length);
-              return { ...prev, [activeTab]: itemsData[randomIndex].id };
+              const randomIndex = Math.floor(Math.random() * visibleItems.length);
+              return { ...prev, [activeTab]: visibleItems[randomIndex].id };
             }
             return prev;
           });
