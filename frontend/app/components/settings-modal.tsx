@@ -151,8 +151,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
               </div>
             </div>
           </div>
-
-          {/* Preferences Section */}
+{/* 
+          {/* Preferences Section
           <div className="bg-white border-4 border-[#2C2C2C] rounded-2xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.15)] relative z-10">
             <div className="flex items-center gap-2 mb-4 border-b-2 border-dashed border-gray-200 pb-2">
               <div className="bg-[#FFF3E0] p-1.5 rounded-lg border-2 border-[#2C2C2C]">
@@ -164,7 +164,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             </div>
 
             <div className="space-y-4">
-              {/* Vibration */}
+              {/* Vibration
               <div className="flex items-center justify-between pt-2">
                 <div className="flex items-center gap-3">
                   <img
@@ -191,7 +191,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 />
               </div>
 
-              {/* Dark Mode */}
+              {/* Dark Mode 
               <div className="flex items-center justify-between pt-2">
                 <div className="flex items-center gap-3">
                   <img
@@ -220,7 +220,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             </div>
           </div>
 
-          {/* Language Section */}
+          {/* Language Section
           <div className="bg-white border-4 border-[#2C2C2C] rounded-2xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.15)] relative z-10">
             <div className="flex items-center gap-2 mb-4 border-b-2 border-dashed border-gray-200 pb-2">
               <div className="bg-[#E8F5E9] p-1.5 rounded-lg border-2 border-[#2C2C2C]">
@@ -270,7 +270,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 </button>
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* App Info Footer */}
           <div className="bg-[#FFFDF5] border-3 border-[#D1D5DB] border-dashed rounded-xl p-2 text-center relative z-10 mt-6">
