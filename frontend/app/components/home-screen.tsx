@@ -1,7 +1,6 @@
 "use client";
 
-import { Camera } from "lucide-react";
-import { PixelAvatar } from "./pixel-avatar";
+import { Camera, HelpCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "@clerk/nextjs";
@@ -31,9 +30,10 @@ export function HomeScreen({
   const [stats, setStats] = useState({ unlocked: 0, total: 0 });
   const [isLoading, setIsLoading] = useState(true);
 
+  const [mysteryAnimal, setMysteryAnimal] = useState<string | null>(null);
+
   useEffect(() => {
     if (!isLoaded) return;
-    console.log(missionData);
 
     const fetchDashboardData = async () => {
       try {
@@ -41,17 +41,24 @@ export function HomeScreen({
         const apiUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:3100";
 
-        console.log("Fetching dashboard data from:", apiUrl);
         const animalsRes = await axios.get(`${apiUrl}/animals`);
-        const totalAnimals = animalsRes.data.length;
+        const allAnimals = animalsRes.data;
+        const totalAnimals = allAnimals.length;
 
         let unlockedAnimals = 0;
+        let unlockedIds: number[] = [];
 
         if (clerkId) {
           try {
             const collectionRes = await axios.get(
               `${apiUrl}/collections/user/${clerkId}`,
             );
+
+            if (collectionRes.data.collections) {
+              unlockedIds = collectionRes.data.collections.map(
+                (c: any) => c.animalId,
+              );
+            }
             unlockedAnimals = collectionRes.data.progress?.unlocked || 0;
           } catch (err) {
             console.error("Failed to fetch collection stats", err);
@@ -59,6 +66,20 @@ export function HomeScreen({
         }
 
         setStats({ unlocked: unlockedAnimals, total: totalAnimals });
+
+        const undiscoveredAnimals = allAnimals.filter(
+          (a: any) => !unlockedIds.includes(a.id),
+        );
+
+        if (undiscoveredAnimals.length > 0) {
+          const randomAnimal =
+            undiscoveredAnimals[
+              Math.floor(Math.random() * undiscoveredAnimals.length)
+            ];
+          setMysteryAnimal(randomAnimal.imageUrl);
+        } else {
+          setMysteryAnimal(null);
+        }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       } finally {
@@ -70,7 +91,7 @@ export function HomeScreen({
   }, [clerkId, isLoaded]);
 
   return (
-    <div className="flex flex-col min-h-full relative">
+    <div className="flex flex-col min-h-full relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 z-0">
         <img
@@ -78,8 +99,8 @@ export function HomeScreen({
           alt="Forest Background"
           className="w-full h-full object-cover opacity-90"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#F5F8F0] z-0" />
-        <div className="absolute inset-0 opacity-[0.03] bg-[repeating-linear-gradient(45deg,#000,#000_2px,transparent_2px,transparent_4px)] z-0" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#F5F8F0] z-10" />
+        <div className="absolute inset-0 opacity-[0.03] bg-[repeating-linear-gradient(45deg,#000,#000_2px,transparent_2px,transparent_4px)] z-10" />
       </div>
 
       {/* Header: Player Status */}
@@ -87,16 +108,12 @@ export function HomeScreen({
         <div className="flex items-start justify-between">
           <div className="bg-black/40 border-2 border-white/20 backdrop-blur-sm rounded-xl px-3 py-2 flex items-center gap-2.5">
             <div className="w-9 h-9 bg-[#FF4757] border-2 border-white rounded-md flex items-center justify-center shadow-inner">
-              {/* 3. Inject the dynamic level here */}
-              <span className="font-['Press_Start_2P'] text-[7px] text-white">
-                Lv.{lvl}
-              </span>
+              <span className="font-['Press_Start_2P'] text-[7px] text-white">Lv.{lvl}</span>
             </div>
             <div>
               <h1 className="font-['Press_Start_2P'] text-sm text-white drop-shadow-[2px_2px_0_#2C2C2C]">
                 {username}
               </h1>
-              {/* Optional: You could even change the "Explorer" title based on level later! */}
               <p className="font-['Nunito'] text-[11px] text-[#FFC800] font-black mt-0.5 uppercase tracking-widest drop-shadow-md">
                 {getRankTitle(lvl)}
               </p>
@@ -112,11 +129,9 @@ export function HomeScreen({
           <div className="absolute top-2 left-2 w-2 h-2 bg-[#FF4757] border border-[#2C2C2C] rounded-full" />
           <div className="absolute top-2 right-2 w-2 h-2 bg-[#FF4757] border border-[#2C2C2C] rounded-full" />
 
-          {/* Fallback check in case missionData is null/loading */}
           {missionData && missionData.mission ? (
             <div className="flex items-center gap-3 relative z-10 pt-1">
               <div className="bg-[#FF9800] border-2 border-[#2C2C2C] rounded-lg p-1.5 shadow-inner">
-                {/* Dynamically load the animal image, with a fallback to the star */}
                 <img
                   src={
                     missionData.mission.animal?.imageUrl ||
@@ -128,7 +143,6 @@ export function HomeScreen({
               </div>
               <div className="flex-1">
                 <div className="flex justify-between items-end mb-1">
-                  {/* Wrapped the label and title in a column flex container */}
                   <div className="flex flex-col">
                     <span className="font-['Press_Start_2P'] text-[10px] text-[#754F26] font-extrabold uppercase tracking-widest mb-0.5">
                       Tutorial
@@ -149,7 +163,6 @@ export function HomeScreen({
                 </p>
 
                 <div className="w-full h-2.5 bg-[#E0E0E0] border-2 border-[#2C2C2C] rounded-full overflow-hidden">
-                  {/* Dynamic Progress Bar */}
                   <div
                     className="h-full bg-gradient-to-r from-[#00D66F] to-[#00F47F] border-r-2 border-[#2C2C2C] transition-all duration-500 ease-out"
                     style={{
@@ -165,7 +178,6 @@ export function HomeScreen({
               </div>
             </div>
           ) : (
-            // Loading state for the badge
             <div className="flex items-center justify-center h-16 relative z-10">
               <p className="font-['Nunito'] text-sm text-[#754F26] font-bold animate-pulse">
                 Tutorial complete
@@ -174,11 +186,35 @@ export function HomeScreen({
           )}
         </div>
 
-        {/* Avatar Character */}
-        <div className="relative mb-10 mt-auto">
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-5 bg-black/20 rounded-[100%] blur-sm" />
-          <div className="relative z-10 animate-[bounce_2s_ease-in-out_infinite]">
-            <PixelAvatar className="w-36 h-28 drop-shadow-[0_10px_10px_rgba(0,0,0,0.3)]" />
+        <div
+          className="relative mb-10 mt-auto flex flex-col items-center group cursor-pointer"
+          onClick={onScanClick}
+        >
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-32 h-6 bg-black/30 rounded-[100%] blur-md transition-all duration-500 group-hover:w-28 group-hover:bg-black/40" />
+
+          <div className="relative z-10 animate-[bounce_3s_ease-in-out_infinite] group-hover:animate-none group-hover:-translate-y-2 transition-transform duration-300">
+            {isLoading ? (
+              <div className="w-36 h-36 border-4 border-dashed border-[#2C2C2C]/20 rounded-xl flex items-center justify-center">
+                <span className="font-['Press_Start_2P'] text-[#2C2C2C]/30 text-[10px] animate-pulse">
+                  LOADING...
+                </span>
+              </div>
+            ) : mysteryAnimal ? (
+              <img
+                src={mysteryAnimal}
+                alt="Mystery Animal"
+                className="w-36 h-36 object-contain drop-shadow-[0_15px_15px_rgba(0,0,0,0.5)] brightness-0 opacity-80 transition-all duration-300 group-hover:opacity-100 group-hover:brightness-0"
+              />
+            ) : (
+              <div className="w-36 h-36 flex flex-col items-center justify-center">
+                <span className="text-6xl drop-shadow-xl mb-2 animate-pulse">
+                  👑
+                </span>
+                <span className="font-['Press_Start_2P'] text-[#754F26] text-[8px] text-center">
+                  ALL FOUND!
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

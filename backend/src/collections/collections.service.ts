@@ -10,8 +10,6 @@ export class CollectionsService {
       where: { clerkId: clerkId },
     });
 
-    console.log('User found for clerkId', clerkId, ':', user);
-
     if (!user) {
       throw new NotFoundException('User not found in database');
     }

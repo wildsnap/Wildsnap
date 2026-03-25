@@ -44,7 +44,7 @@ export function AchievementToast({ achievement, onClose }: AchievementToastProps
               <p className="font-['Press_Start_2P'] text-[9px] text-[#2C2C2C] mb-1">
                 ACHIEVEMENT UNLOCKED!
               </p>
-              <p className="font-['Nunito'] font-black text-sm text-[#754F26] leading-tight">
+              <p className="font-['Press_Start_2P'] font-black text-sm text-[#754F26] leading-tight">
                 {achievement.name}
               </p>
               <p className="font-['Press_Start_2P'] text-[8px] text-[#00D66F] mt-1 drop-shadow-[1px_1px_0_#2C2C2C]">
