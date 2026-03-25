@@ -21,7 +21,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3100";
 
 // --- Types ---
 export interface AnimalData {
-  id?: number; 
+  id?: number;
   name: string;
   confidence: number;
   funFact?: string;
@@ -62,15 +62,21 @@ const calculateNextLevelTarget = (points: number) => {
 
 export default function Home() {
   const { user: clerkUser, isLoaded: isClerkLoaded } = useUser();
-  const [activeTab, setActiveTab] = useState<"scan" | "collection" | "avatar" | "shop">("scan");
-  const [profileView, setProfileView] = useState<"avatar" | "achievements" | "wardrobe">("avatar");
+  const [activeTab, setActiveTab] = useState<
+    "scan" | "collection" | "avatar" | "shop"
+  >("scan");
+  const [profileView, setProfileView] = useState<
+    "avatar" | "achievements" | "wardrobe"
+  >("avatar");
 
   const [showScanScreen, setShowScanScreen] = useState(false);
   const [showRewardModal, setShowRewardModal] = useState(false);
   const [showUnlockAnimation, setShowUnlockAnimation] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const [unlockedAchievementsQueue, setUnlockedAchievementsQueue] = useState<any[]>([]);
+  const [unlockedAchievementsQueue, setUnlockedAchievementsQueue] = useState<
+    any[]
+  >([]);
   const [currentToast, setCurrentToast] = useState<any | null>(null);
 
   const [dbUser, setDbUser] = useState<any>(null);
@@ -81,7 +87,9 @@ export default function Home() {
 
   const [achievements, setAchievements] = useState<AchievementData[]>([]);
   const [isAchievementsLoading, setIsAchievementsLoading] = useState(true);
-  const [achievementsError, setAchievementsError] = useState<string | null>(null);
+  const [achievementsError, setAchievementsError] = useState<string | null>(
+    null,
+  );
 
   // Global Inventory State
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
@@ -109,7 +117,9 @@ export default function Home() {
     if (!clerkUser?.id) return;
     try {
       const headers = { "x-user-id": clerkUser.id };
-      const missionRes = await fetch(`${API_BASE_URL}/quests/guided`, { headers });
+      const missionRes = await fetch(`${API_BASE_URL}/quests/guided`, {
+        headers,
+      });
       if (missionRes.ok) {
         const missionData = await missionRes.json();
         if (missionData && !missionData.isFinished) {
@@ -127,7 +137,7 @@ export default function Home() {
     if (!clerkUser?.id) return;
     try {
       const headers = { "x-user-id": clerkUser.id };
-      
+
       const [headRes, bodyRes, legRes] = await Promise.all([
         fetch(`${API_BASE_URL}/item/my-items/HEAD`, { headers }),
         fetch(`${API_BASE_URL}/item/my-items/BODY`, { headers }),
@@ -139,7 +149,6 @@ export default function Home() {
       const legData = legRes.ok ? await legRes.json() : [];
 
       setInventory([...headData, ...bodyData, ...legData]);
-      
     } catch (error) {
       console.error("Error fetching inventory data:", error);
     }
@@ -147,7 +156,11 @@ export default function Home() {
 
   const loadInitialData = async () => {
     setIsLoadingData(true);
-    await Promise.all([fetchUserData(), fetchMissionData(), fetchInventoryData()]);
+    await Promise.all([
+      fetchUserData(),
+      fetchMissionData(),
+      fetchInventoryData(),
+    ]);
     setIsLoadingData(false);
   };
 
@@ -162,8 +175,11 @@ export default function Home() {
     try {
       setIsAchievementsLoading(true);
       setAchievementsError(null);
-      const response = await fetch(`${API_BASE_URL}/achievement/user/${dbUser.id}`);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const response = await fetch(
+        `${API_BASE_URL}/achievement/user/${dbUser.id}`,
+      );
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
       const formattedData: AchievementData[] = data.map((item: any) => ({
         id: item.achievement.id,
@@ -177,7 +193,9 @@ export default function Home() {
       setAchievements(formattedData);
     } catch (err) {
       console.error("Failed to fetch achievements:", err);
-      setAchievementsError("Could not load your badges. Please check your connection.");
+      setAchievementsError(
+        "Could not load your badges. Please check your connection.",
+      );
     } finally {
       setIsAchievementsLoading(false);
     }
@@ -189,11 +207,20 @@ export default function Home() {
 
   useEffect(() => {
     const isBlockingUI = showRewardModal || showUnlockAnimation;
-    if (!currentToast && unlockedAchievementsQueue.length > 0 && !isBlockingUI) {
+    if (
+      !currentToast &&
+      unlockedAchievementsQueue.length > 0 &&
+      !isBlockingUI
+    ) {
       setCurrentToast(unlockedAchievementsQueue[0]);
-      setUnlockedAchievementsQueue(prev => prev.slice(1));
+      setUnlockedAchievementsQueue((prev) => prev.slice(1));
     }
-  }, [unlockedAchievementsQueue, currentToast, showRewardModal, showUnlockAnimation]);
+  }, [
+    unlockedAchievementsQueue,
+    currentToast,
+    showRewardModal,
+    showUnlockAnimation,
+  ]);
 
   const handleScanClick = () => setShowScanScreen(true);
 
@@ -221,13 +248,15 @@ export default function Home() {
     let completedQuest = false;
     if (activeMission && activeMission.mission) {
       const isTargetAnimal = activeMission.mission.animalId === data.id;
-      const isAnyAnimal = !activeMission.mission.animalId && activeMission.mission.missionType === 'SCAN_ANIMAL';
-      
+      const isAnyAnimal =
+        !activeMission.mission.animalId &&
+        activeMission.mission.missionType === "SCAN_ANIMAL";
+
       if (isTargetAnimal || isAnyAnimal) {
         completedQuest = true;
       }
     }
-    
+
     setIsQuestCompleted(completedQuest);
     setCurrentAnimal(detectedAnimal);
     setShowScanScreen(false);
@@ -241,14 +270,17 @@ export default function Home() {
     }
 
     if (data.unlockedAchievements && data.unlockedAchievements.length > 0) {
-      setUnlockedAchievementsQueue(prev => [...prev, ...data.unlockedAchievements]);
+      setUnlockedAchievementsQueue((prev) => [
+        ...prev,
+        ...data.unlockedAchievements,
+      ]);
     }
   };
 
   const handlePurchaseSuccess = (newBalance: number) => {
     setCoins(newBalance);
     fetchUserData();
-    fetchInventoryData(); 
+    fetchInventoryData();
   };
 
   const handleRewardModalClose = () => {
@@ -266,7 +298,8 @@ export default function Home() {
     setIsQuestCompleted(false);
   };
 
-  const displayUsername = dbUser?.username || clerkUser?.firstName || "Explorer";
+  const displayUsername =
+    dbUser?.username || clerkUser?.firstName || "Explorer";
 
   if (!isClerkLoaded || isLoadingData) {
     return (
@@ -278,10 +311,9 @@ export default function Home() {
 
   return (
     <div className="relative w-full h-[calc(100vh-64px)] max-w-md mx-auto bg-[#F5F8F0] overflow-hidden font-['Nunito']">
-      
-      <AchievementToast 
-        achievement={currentToast} 
-        onClose={() => setCurrentToast(null)} 
+      <AchievementToast
+        achievement={currentToast}
+        onClose={() => setCurrentToast(null)}
       />
 
       <div className={activeTab === "scan" ? "block h-full" : "hidden"}>
@@ -305,8 +337,10 @@ export default function Home() {
           <AvatarScreen
             username={displayUsername}
             level={calculateLevel(dbUser?.totalPointsEarned || 0)}
-            totalAnimals={dbUser?._count?.collections || 0}
-            achievements={dbUser?._count?.achievements || 0}
+            totalAnimals={
+              dbUser?.collections?.length || dbUser?._count?.collections || 0
+            }
+            achievements={achievements.filter((a) => a.isCompleted).length}
             currentExp={dbUser?.totalPointsEarned || 0}
             targetExp={calculateNextLevelTarget(dbUser?.totalPointsEarned || 0)}
             inventory={inventory}
@@ -322,7 +356,7 @@ export default function Home() {
             onRetry={fetchUserAchievements}
           />
         ) : (
-          <EditAvatarScreen 
+          <EditAvatarScreen
             inventory={inventory}
             onSaveSuccess={fetchInventoryData}
             onBack={() => setProfileView("avatar")}
@@ -375,7 +409,7 @@ export default function Home() {
         rarityLevel={(currentAnimal?.rarity as any) || "Common"}
         imageUrl={currentAnimal?.imageUrl}
         activeMission={activeMission}
-        onFetchNextMission={fetchMissionData} 
+        onFetchNextMission={fetchMissionData}
         isQuestCompleted={isQuestCompleted}
       />
     </div>

@@ -19,18 +19,24 @@ export class UsersService {
     // 2. Call our new upsert function to ensure all achievements are initialized
     await this.syncUserAchievements(user.id);
 
-    // 3. Now that we know all achievements exist, fetch and return the user 
+    // 3. Now that we know all achievements exist, fetch and return the user
     // with their settings and their fully updated achievements list!
     return this.prisma.user.findUnique({
       where: { clerkId },
-      include: { 
-        settings: true, 
+      include: {
+        settings: true,
         achievements: {
           include: {
-            achievement: true // This includes the master achievement info (name, description, etc.)
-          }
-        } 
-      }
+            achievement: true, // This includes the master achievement info
+          },
+        },
+        _count: {
+          select: {
+            collections: true,
+            achievements: true,
+          },
+        },
+      },
     });
   }
 
@@ -58,8 +64,8 @@ export class UsersService {
             currentProgress: 0,
             isCompleted: false,
           },
-        })
-      )
+        }),
+      ),
     );
   }
 

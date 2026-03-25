@@ -11,7 +11,7 @@ const getRankTitle = (level: number = 1) => {
   if (level >= 4) return "Master Explorer";
   if (level >= 3) return "Pro Tracker";
   if (level >= 2) return "Junior Scout";
-  return "Novice Ranger"; 
+  return "Novice Ranger";
 };
 
 interface AvatarScreenProps {
@@ -45,15 +45,20 @@ export function AvatarScreen({
   );
 
   // --- ADDED: Find currently equipped items ---
-  const equippedHead = inventory?.find((i) => i.isEquipped && i?.item?.type === "HEAD")?.item?.imageUrl;
-  const equippedBody = inventory?.find((i) => i.isEquipped && i.item?.type === "BODY")?.item?.imageUrl;
-  const equippedLeg = inventory?.find((i) => i.isEquipped && i.item?.type === "LEG")?.item?.imageUrl;
+  const equippedHead = inventory?.find(
+    (i) => i.isEquipped && i.item.type === "HEAD",
+  )?.item.imageUrl;
+  const equippedBody = inventory?.find(
+    (i) => i.isEquipped && i.item.type === "BODY",
+  )?.item.imageUrl;
+  const equippedLeg = inventory?.find(
+    (i) => i.isEquipped && i.item.type === "LEG",
+  )?.item.imageUrl;
   const { playClickSound } = useSettings();
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-[#F5F8F0] to-[#E8F5E9] pb-20">
-      {/* Header with Background */}
-      <div className="relative bg-[#754F26] border-b-4 border-[#2C2C2C] overflow-hidden">
+      <div className="relative bg-[#754F26] border-b-4 border-[#2C2C2C] overflow-hidden shrink-0">
         <div className="absolute inset-0 opacity-20">
           <img
             src={img8BitGraphicsPixelsSceneWithForest.src as string}
@@ -62,85 +67,96 @@ export function AvatarScreen({
           />
         </div>
 
-        <div className="relative px-6 py-8">
-          <div className="absolute top-4 right-4 bg-[#FFC800] border-3 border-[#2C2C2C] rounded-full w-16 h-16 flex flex-col items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,0.3)] z-20">
-            <Crown className="w-6 h-6 text-[#2C2C2C]" fill="#2C2C2C" />
-            <span className="font-['Press_Start_2P'] text-[10px] text-[#2C2C2C] mt-1">
-              {level}
+        <div className="relative px-6 py-5">
+          <div className="absolute top-4 right-4 bg-[#FFC800] border-3 border-[#2C2C2C] rounded-full w-12 h-12 flex flex-col items-center justify-center shadow-[3px_3px_0_0_rgba(0,0,0,0.3)] z-20">
+            <Crown className="w-5 h-5 text-[#2C2C2C]" fill="#2C2C2C" />
+            <span className="font-['Press_Start_2P'] text-[8px] text-[#2C2C2C] mt-0.5">
+              LV.{level}
             </span>
           </div>
 
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-2">
             <div className="relative">
               {/* Glow Effect */}
-              <div className="absolute -inset-10 bg-gradient-to-b from-[#FFC800]/40 to-transparent rounded-full blur-2xl z-0" />
-              
-              {/* --- ADDED: Render Character Character --- */}
-              <div className="relative z-10 w-32 h-40 flex flex-col items-center justify-center">
+              <div className="absolute -inset-8 bg-gradient-to-b from-[#FFC800]/40 to-transparent rounded-full blur-xl z-0" />
+
+              <div className="relative z-10 w-15 h-20 flex flex-col items-center justify-center">
                 {/* Fallback box if nothing is equipped */}
                 {!equippedHead && !equippedBody && !equippedLeg && (
-                  <div className="w-20 h-20 bg-black/20 border-4 border-dashed border-white/40 rounded-xl flex items-center justify-center">
-                    <span className="text-3xl">👤</span>
+                  <div className="w-16 h-16 bg-black/20 border-4 border-dashed border-white/40 rounded-xl flex items-center justify-center">
+                    <span className="text-2xl">👤</span>
                   </div>
                 )}
-                
+
                 {/* Render parts sequentially to stack them properly */}
                 {equippedHead && (
-                  <img src={equippedHead} className="h-[30%] w-auto object-contain z-30 drop-shadow-md" alt="Head" />
+                  <img
+                    src={equippedHead}
+                    className="h-[30%] w-auto object-contain z-30 drop-shadow-md"
+                    alt="Head"
+                  />
                 )}
                 {equippedBody && (
-                  <img src={equippedBody} className="h-[30%] w-auto object-contain z-20 drop-shadow-md" alt="Body" />
+                  <img
+                    src={equippedBody}
+                    className="h-[30%] w-auto object-contain z-20 drop-shadow-md"
+                    alt="Body"
+                  />
                 )}
                 {equippedLeg && (
-                  <img src={equippedLeg} className="h-[40%] w-auto object-contain z-10 -mt-2 drop-shadow-md" alt="Legs" />
+                  <img
+                    src={equippedLeg}
+                    className="h-[40%] w-auto object-contain z-10 -mt-1.5 drop-shadow-md"
+                    alt="Legs"
+                  />
                 )}
               </div>
-
             </div>
           </div>
 
-          <h1 className="font-['Press_Start_2P'] text-xl text-white text-center drop-shadow-[3px_3px_0_rgba(0,0,0,0.5)] mb-2 relative z-10">
+          <h1 className="font-['Press_Start_2P'] text-lg text-white text-center drop-shadow-[2px_2px_0_rgba(0,0,0,0.5)] mb-1 relative z-10">
             {username}
           </h1>
-          <p className="font-['Press_Start_2P'] text-[#FFC800] text-center font-bold">
+          <p className="font-['Press_Start_2P'] text-[10px] text-[#FFC800] text-center font-bold relative z-10">
             {getRankTitle(level)}
           </p>
 
-          <div className="flex justify-center gap-6 mt-6 relative z-10">
+          {/* Stats */}
+          <div className="flex justify-center gap-6 mt-4 relative z-10">
             <div className="text-center">
-              <div className="font-['Press_Start_2P'] text-2xl text-[#FFC800] drop-shadow-[2px_2px_0_rgba(0,0,0,0.5)]">
+              <div className="font-['Press_Start_2P'] text-xl text-[#FFC800] drop-shadow-[2px_2px_0_rgba(0,0,0,0.5)]">
                 {totalAnimals}
               </div>
-              <div className="font-['Press_Start_2P'] text-white text-[10px] font-bold mt-1">
-                Animals
+              <div className="font-['Press_Start_2P'] text-white text-[8px] mt-1">
+                ANIMALS
               </div>
             </div>
-            <div className="w-px bg-white/30" />
+            <div className="w-px h-8 bg-white/30 self-center" />
             <div className="text-center">
-              <div className="font-['Press_Start_2P'] text-2xl text-[#FFC800] drop-shadow-[2px_2px_0_rgba(0,0,0,0.5)]">
+              <div className="font-['Press_Start_2P'] text-xl text-[#FFC800] drop-shadow-[2px_2px_0_rgba(0,0,0,0.5)]">
                 {achievements}
               </div>
-              <div className="font-['Nunito'] text-white text-xs font-bold mt-1">
-                Achievements
+              <div className="font-['Press_Start_2P'] text-white text-[8px] mt-1">
+                ACHIEVEMENTS
               </div>
             </div>
           </div>
 
           {/* Level Progress Bar */}
-          <div className="mt-8 max-w-[260px] mx-auto w-full relative z-10">
+          <div className="mt-5 max-w-[260px] mx-auto w-full relative z-10">
             <div className="flex justify-between items-end mb-1 px-1">
-              <span className="font-['Press_Start_2P'] text-[14px] text-white drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">
+              <span className="font-['Press_Start_2P'] text-[10px] text-white drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">
                 LV {level}
               </span>
-              <span className="font-['Press_Start_2P'] text-[14px] text-[#FFC800] drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">
+              <span className="font-['Press_Start_2P'] text-[10px] text-[#FFC800] drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">
                 {currentExp} / {targetExp} P
               </span>
             </div>
 
             {/* The Bar Track */}
-            <div className="w-full h-4 bg-[#2C2C2C] p-[2px] shadow-[4px_4px_0_0_rgba(0,0,0,0.3)]">
+            <div className="w-full h-3 bg-[#2C2C2C] p-[2px] shadow-[4px_4px_0_0_rgba(0,0,0,0.3)]">
               <div
-                className="h-full bg-gradient-to-r from-[#00D66F] to-[#00F47F] shadow-[inset_0_-2px_0_rgba(0,0,0,0.3)] transition-all duration-500 ease-out"
+                className="h-full bg-gradient-to-r from-[#00D66F] to-[#00F47F] shadow-[inset_0_-1px_0_rgba(0,0,0,0.3)] transition-all duration-500 ease-out"
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
@@ -148,7 +164,7 @@ export function AvatarScreen({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-6">
+      <div className="flex-1 overflow-y-auto px-4 py-5">
         <div className="max-w-md mx-auto space-y-3">
           {/* Achievements Button */}
           <button
@@ -171,7 +187,7 @@ export function AvatarScreen({
                   <p className="font-['Press_Start_2P'] font-bold text-[#2C2C2C] text-[12px]">
                     Achievements
                   </p>
-                  <p className="font-['Press_Start_2P'] text-[#754F26] text-[10px]">
+                  <p className="font-['Press_Start_2P'] text-[#754F26] text-[10px] mt-1">
                     View your badges
                   </p>
                 </div>
@@ -204,7 +220,7 @@ export function AvatarScreen({
                   <p className="font-['Press_Start_2P'] font-bold text-[#2C2C2C] text-[12px]">
                     Edit Avatar
                   </p>
-                  <p className="font-['Press_Start_2P'] text-[10px] text-[#754F26]">
+                  <p className="font-['Press_Start_2P'] text-[10px] text-[#754F26] mt-1">
                     Customize your look
                   </p>
                 </div>
@@ -237,7 +253,7 @@ export function AvatarScreen({
                   <p className="font-['Press_Start_2P'] font-bold text-[#2C2C2C] text-[12px]">
                     Settings
                   </p>
-                  <p className="font-['Press_Start_2P'] text-[10px] text-[#754F26]">
+                  <p className="font-['Press_Start_2P'] text-[10px] text-[#754F26] mt-1">
                     Sound, language & more
                   </p>
                 </div>
@@ -248,23 +264,6 @@ export function AvatarScreen({
               />
             </div>
           </button>
-
-          {/* Daily Streak */}
-          <div className="bg-gradient-to-r from-[#FF4757] to-[#FF6B7A] border-4 border-[#2C2C2C] rounded-xl p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.25)]">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-['Nunito'] font-bold text-white text-lg">
-                  🔥 Streak
-                </p>
-                <p className="font-['Nunito'] text-white/90 text-sm">
-                  Keep it going!
-                </p>
-              </div>
-              <div className="font-['Press_Start_2P'] text-3xl text-white drop-shadow-[2px_2px_0_rgba(0,0,0,0.3)]">
-                7
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
