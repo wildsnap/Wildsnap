@@ -1,12 +1,13 @@
-import { IsInt, IsNotEmpty, IsPositive, IsString } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsBoolean } from 'class-validator';
 
 export class PurchaseItemDto {
-  @IsInt()
-  @IsPositive()
-  @IsNotEmpty()
-  readonly itemId: number;
-
   @IsString()
-  @IsNotEmpty()
-  readonly clerkId: string;
+  clerkId: string;
+
+  @IsNumber()
+  itemId: number;
+
+  @IsOptional()
+  @IsBoolean()
+  isSpecialOffer?: boolean; // ADD THIS FLAG
 }

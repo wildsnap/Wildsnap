@@ -25,10 +25,9 @@ export class ItemService {
   }
 
   async purchase(dto: PurchaseItemDto) {
-    const { clerkId, itemId } = dto;
+    const { clerkId, itemId, isSpecialOffer } = dto;
 
     return this.prisma.$transaction(async (tx) => {
-      // 1. Fetch item and user in parallel to save time (optional but faster)
       const [item, user] = await Promise.all([
         tx.item.findUnique({ where: { id: itemId } }),
         tx.user.findUnique({ where: { clerkId } }),
@@ -37,30 +36,28 @@ export class ItemService {
       if (!item) throw new NotFoundException('Item not found');
       if (!user) throw new NotFoundException('User not found');
 
-      // 2. NEW: Check if user already owns this item
       const existingRecord = await tx.userInventory.findFirst({
-        where: {
-          userId: user.id,
-          itemId: itemId,
-        },
+        where: { userId: user.id, itemId: itemId },
       });
 
       if (existingRecord) {
         throw new BadRequestException('You already own this item');
       }
 
-      // 3. Check points
-      if (user.currentPoints < item.price) {
+      // ADDED: Check if the frontend says it's a special offer, and calculate the 20% discount
+      const finalPrice = isSpecialOffer ? Math.floor(item.price * 0.8) : item.price;
+
+      // Compare points against the final discounted price
+      if (user.currentPoints < finalPrice) {
         throw new BadRequestException('Insufficient points');
       }
 
-      // 4. Deduct points
+      // Deduct the final discounted price
       const updatedUser = await tx.user.update({
         where: { clerkId },
-        data: { currentPoints: { decrement: item.price } },
+        data: { currentPoints: { decrement: finalPrice } },
       });
 
-      // 5. Create inventory record
       const inventory = await tx.userInventory.create({
         data: {
           user: { connect: { clerkId } },

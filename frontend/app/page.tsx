@@ -49,6 +49,14 @@ export interface InventoryItem {
   };
 }
 
+export interface ShopItem {
+  id: number;
+  name: string;
+  price: number;
+  imageUrl?: string;
+  type: string;
+}
+
 const calculateLevel = (points: number) => {
   if (points >= 1200) return 4;
   if (points >= 700) return 3;
@@ -94,8 +102,9 @@ export default function Home() {
     null,
   );
 
-  // Global Inventory State
+  // Global Inventory & Shop State
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [shopItems, setShopItems] = useState<ShopItem[]>([]); // New state for all shop items
 
   const { coins, setCoins } = useCoin();
   const [currentAnimal, setCurrentAnimal] = useState<AnimalData | null>(null);
@@ -157,12 +166,26 @@ export default function Home() {
     }
   };
 
+  // Fetch ALL shop items at once
+  const fetchShopItems = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/item`);
+      if (res.ok) {
+        const data = await res.json();
+        setShopItems(Array.isArray(data) ? data : (data?.data || []));
+      }
+    } catch (error) {
+      console.error("Error fetching shop items:", error);
+    }
+  };
+
   const loadInitialData = async () => {
     setIsLoadingData(true);
     await Promise.all([
       fetchUserData(),
       fetchMissionData(),
       fetchInventoryData(),
+      fetchShopItems(), // Fetching shop items right when the app loads
     ]);
     setIsLoadingData(false);
   };
@@ -283,7 +306,7 @@ export default function Home() {
   const handlePurchaseSuccess = (newBalance: number) => {
     setCoins(newBalance);
     fetchUserData();
-    fetchInventoryData();
+    fetchInventoryData(); // Re-sync inventory after buying
   };
 
   const handleRewardModalClose = () => {
@@ -304,9 +327,6 @@ export default function Home() {
   const displayUsername =
     dbUser?.username || clerkUser?.firstName || "Explorer";
 
-  // ---------------------------------------------------------
-  // 1. Loading State (Clerk is still checking session)
-  // ---------------------------------------------------------
   if (!isClerkLoaded) {
     return (
       <div className="flex h-[calc(100vh-64px)] max-w-md mx-auto items-center justify-center bg-[#F5F8F0] font-['Press_Start_2P'] text-[10px] text-[#754F26]">
@@ -315,9 +335,6 @@ export default function Home() {
     );
   }
 
-  // ---------------------------------------------------------
-  // 2. Unauthenticated State (User is NOT logged in)
-  // ---------------------------------------------------------
   if (!clerkUser) {
     return (
       <div className="flex h-screen max-w-md mx-auto items-center justify-center bg-[#F5F8F0] p-6 text-center font-['Nunito'] relative">
@@ -350,9 +367,6 @@ export default function Home() {
     );
   }
 
-  // ---------------------------------------------------------
-  // 3. Data Fetching State (Logged in, but loading DB info)
-  // ---------------------------------------------------------
   if (isLoadingData) {
     return (
       <div className="flex h-[calc(100vh-64px)] max-w-md mx-auto items-center justify-center bg-[#F5F8F0] font-['Press_Start_2P'] text-[10px] text-[#754F26] animate-pulse">
@@ -361,9 +375,6 @@ export default function Home() {
     );
   }
 
-  // ---------------------------------------------------------
-  // 4. Main Authenticated App Layout
-  // ---------------------------------------------------------
   return (
     <div className="relative w-full h-[calc(100vh-64px)] max-w-md mx-auto bg-[#F5F8F0] overflow-hidden font-['Nunito']">
       <AchievementToast
@@ -420,8 +431,11 @@ export default function Home() {
       </div>
 
       <div className={activeTab === "shop" ? "block h-full" : "hidden"}>
+        {/* Pass down the data from Home instead of making ShopScreen fetch it */}
         <ShopScreen
           userCoins={coins}
+          shopItems={shopItems}
+          inventory={inventory}
           onPurchaseSuccess={handlePurchaseSuccess}
         />
       </div>
