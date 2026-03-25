@@ -139,21 +139,39 @@ export function EditAvatarScreen({
 
   return (
     <div className="flex flex-col h-full bg-[#8B9BB4] relative overflow-hidden">
+      {/* HEADER */}
       <div className="bg-[#E2D8C3] border-b-4 border-[#2C2C2C] px-3 sm:px-4 py-3 sm:py-4 shrink-0 z-20 shadow-[0_4px_0_0_rgba(0,0,0,0.2)] flex items-center justify-between">
+        {/* Left Side: Back & Title */}
         <div className="flex items-center gap-3 sm:gap-4">
           <button
             onClick={() => {
               playClickSound();
               onBack();
             }}
-            className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FF4757] border-4 border-[#2C2C2C] flex items-center justify-center shadow-[4px_4px_0_0_#2C2C2C] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
+            className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FF4757] border-4 border-[#2C2C2C] flex items-center justify-center shadow-[4px_4px_0_0_#2C2C2C] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all shrink-0"
           >
             <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8 text-white" strokeWidth={4} />
           </button>
-          <h1 className="font-['Press_Start_2P'] text-sm sm:text-[16px] text-[#2C2C2C] mt-1">
+          <h1 className="font-['Press_Start_2P'] text-sm sm:text-[16px] text-[#2C2C2C] mt-1 hidden sm:block">
             WARDROBE
           </h1>
         </div>
+
+        {/* Right Side: Save Button */}
+        <button
+          disabled={!isComplete || !hasChanges || isSaving}
+          onClick={handleSave}
+          className={`px-3 sm:px-4 py-2 sm:py-3 border-4 rounded-xl flex items-center justify-center gap-2 transition-all ${
+            isComplete && hasChanges && !isSaving
+              ? "bg-[#00D66F] border-[#2C2C2C] text-white shadow-[3px_3px_0_0_#2C2C2C] active:shadow-none active:translate-x-1 active:translate-y-1"
+              : "bg-[#A9A9A9] border-[#555] text-[#555] cursor-not-allowed"
+          }`}
+        >
+          <Save className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={3} />
+          <span className="font-['Press_Start_2P'] text-[8px] sm:text-[10px] pt-1">
+            {isSaving ? "SAVING" : "SAVE"}
+          </span>
+        </button>
       </div>
 
       <div className="bg-[#F5F8F0] h-[35vh] sm:h-72 shrink-0 border-b-4 border-[#2C2C2C] flex flex-col items-center justify-center relative shadow-inner overflow-hidden">
@@ -218,7 +236,8 @@ export function EditAvatarScreen({
         ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4 pb-[120px] sm:pb-[140px]">
+      {/* Reduced bottom padding from pb-[120px] to pb-6 since button is gone */}
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 pb-6 sm:pb-8">
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
           {filteredItems.map((inv) => {
             const isSelected = selectedItems[activeTab] === inv.id;
@@ -264,23 +283,6 @@ export function EditAvatarScreen({
             </div>
           )}
         </div>
-      </div>
-
-      <div className="relative bottom-20 sm:bottom-24 z-100 mx-10">
-        <button
-          disabled={!isComplete || !hasChanges || isSaving}
-          onClick={handleSave}
-          className={`w-full py-3.5 sm:py-4 border-4 rounded-xl flex items-center justify-center gap-2 sm:gap-3 transition-all ${
-            isComplete && hasChanges && !isSaving
-              ? "bg-[#00D66F] border-[#2C2C2C] text-white shadow-[4px_4px_0_0_#2C2C2C] active:shadow-none active:translate-x-1 active:translate-y-1"
-              : "bg-[#A9A9A9] border-[#555] text-[#555] cursor-not-allowed"
-          }`}
-        >
-          <Save className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={3} />
-          <span className="font-['Press_Start_2P'] text-[10px] sm:text-[12px] pt-1">
-            {isSaving ? "SAVING..." : "SAVE AVATAR"}
-          </span>
-        </button>
       </div>
     </div>
   );
