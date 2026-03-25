@@ -181,13 +181,23 @@ export default function Home() {
 
   const loadInitialData = async () => {
     setIsLoadingData(true);
-    await Promise.all([
-      fetchUserData(),
-      fetchMissionData(),
-      fetchInventoryData(),
-      fetchShopItems(), // Fetching shop items right when the app loads
-    ]);
-    setIsLoadingData(false);
+    
+    try {
+      // 1. AWAIT the user data FIRST. 
+      // This ensures the backend has created/verified the user row in the database.
+      await fetchUserData();
+
+      // 2. ONLY THEN fetch the data that depends on the user existing.
+      await Promise.all([
+        fetchMissionData(),
+        fetchInventoryData(),
+        fetchShopItems(), 
+      ]);
+    } catch (error) {
+      console.error("Error loading initial data:", error);
+    } finally {
+      setIsLoadingData(false);
+    }
   };
 
   useEffect(() => {
