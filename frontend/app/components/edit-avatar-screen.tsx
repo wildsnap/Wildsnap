@@ -266,7 +266,7 @@ export function EditAvatarScreen({
         </div>
       </div>
 
-      <div className="relative bottom-20 sm:bottom-24 z-0 mx-10">
+      <div className="relative bottom-20 sm:bottom-24 z-100 mx-10">
         <button
           disabled={!isComplete || !hasChanges || isSaving}
           onClick={handleSave}
