@@ -68,6 +68,12 @@ export class UsersService {
     email: string;
     username: string;
   }) {
+    // IMPORTANT: Check your database and replace these numbers 
+    // with the actual Item IDs of your starting gear!
+    const defaultHeadId = 6; 
+    const defaultBodyId = 10;
+    const defaultLegId = 14;
+
     return this.prisma.user.upsert({
       where: { clerkId: data.clerkId },
       update: {
@@ -80,6 +86,15 @@ export class UsersService {
         username: data.username,
         currentPoints: 0,
         totalPointsEarned: 0,
+        // This automatically creates and equips the starter items 
+        // the moment the user row is created in the database.
+        inventory: {
+          create: [
+            { itemId: defaultHeadId, isEquipped: true },
+            { itemId: defaultBodyId, isEquipped: true },
+            { itemId: defaultLegId, isEquipped: true },
+          ]
+        }
       },
     });
   }
