@@ -30,9 +30,9 @@ export function ShopScreen({
   onPurchaseSuccess: (bal: number) => void;
 }) {
   const { userId: clerkId, isLoaded } = useAuth();
-  
+
   const [activeTab, setActiveTab] = useState<"head" | "body" | "leg">("head");
-  
+
   const [items, setItems] = useState<ShopItem[]>([]);
   const [ownedItemIds, setOwnedItemIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +74,10 @@ export function ShopScreen({
         const itemsData = await itemsRes.json();
         const ownedData = await ownedRes.json();
 
-        setItems(itemsData || []);
+        const safeItems = Array.isArray(itemsData) ? itemsData : (itemsData?.data || []);
+        setItems(safeItems);
+
+        // setItems(itemsData || []);
 
         // FIX: Pick a special item ONLY if we haven't picked one for this tab yet
         if (itemsData && itemsData.length > 0) {
@@ -111,11 +114,15 @@ export function ShopScreen({
 
   // FIX: Update useMemo to use the saved specialItemIds
   const { specialItem, regularItems } = useMemo(() => {
-    if (items.length === 0) return { specialItem: null, regularItems: [] };
+   if (!Array.isArray(items) || items.length === 0) {
+      return { specialItem: null, regularItems: [] };
+    }
 
     const currentSpecialId = specialItemIds[activeTab];
-    const special = items.find((item) => item.id === currentSpecialId) || items[0];
-    const regulars = items.filter((item) => item.id !== special?.id);
+    const special =
+      items?.find((item) => item.id === currentSpecialId) || items[0];
+
+    const regulars = items?.filter((item) => item.id !== special?.id) || [];
 
     return { specialItem: special, regularItems: regulars };
   }, [items, activeTab, specialItemIds]);
@@ -196,7 +203,9 @@ export function ShopScreen({
                         : "bg-[#8B6332] text-white hover:bg-[#9c6f37] active:translate-y-0.5 active:shadow-none"
                     }`}
                 >
-                  <span className={`text-sm leading-none ${activeTab !== cat && "opacity-70 grayscale"}`}>
+                  <span
+                    className={`text-sm leading-none ${activeTab !== cat && "opacity-70 grayscale"}`}
+                  >
                     {cat === "head" ? "🧢" : cat === "body" ? "👕" : "👖"}
                   </span>
                   <span className="font-['Press_Start_2P'] text-[8px] uppercase">
@@ -227,7 +236,9 @@ export function ShopScreen({
                 alt={viewMode === "inventory" ? "Bag Open" : "Bag Closed"}
                 className="w-5 h-5 mb-0.5 object-contain drop-shadow-sm"
               />
-              <span className="font-['Press_Start_2P'] text-[7px] pt-1 uppercase">BAG</span>
+              <span className="font-['Press_Start_2P'] text-[7px] pt-1 uppercase">
+                BAG
+              </span>
             </button>
           </div>
         </div>
@@ -312,7 +323,9 @@ export function ShopScreen({
                                   className="w-5 h-5 mb-0.5"
                                   strokeWidth={4}
                                 />
-                                <span className="text-[8px] font-['Press_Start_2P']">OWNED</span>
+                                <span className="text-[8px] font-['Press_Start_2P']">
+                                  OWNED
+                                </span>
                               </div>
                             ) : (
                               <div className="flex flex-col items-center">
