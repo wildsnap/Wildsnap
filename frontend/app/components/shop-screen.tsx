@@ -9,8 +9,9 @@ import { useSettings } from "../contexts/AudioContext";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3100";
 
 const CATEGORY_MAP = {
-  character: "AVATAR_OUTFIT",
-  pet: "ANIMAL_DECORATION",
+  head: "HEAD",
+  body: "BODY",
+  leg: "LEG",
 } as const;
 
 interface ShopItem {
@@ -29,13 +30,22 @@ export function ShopScreen({
   onPurchaseSuccess: (bal: number) => void;
 }) {
   const { userId: clerkId, isLoaded } = useAuth();
-  const [activeTab, setActiveTab] = useState<"character" | "pet">("character");
+
+  const [activeTab, setActiveTab] = useState<"head" | "body" | "leg">("head");
+
   const [items, setItems] = useState<ShopItem[]>([]);
   const [ownedItemIds, setOwnedItemIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [purchasingItemId, setPurchasingItemId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"shop" | "inventory">("shop");
   const { playClickSound, playSuccessSound } = useSettings();
+
+  // FIX: Keep track of the special item ID for each category
+  const [specialItemIds, setSpecialItemIds] = useState<{
+    head: number | null;
+    body: number | null;
+    leg: number | null;
+  }>({ head: null, body: null, leg: null });
 
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
@@ -64,7 +74,21 @@ export function ShopScreen({
         const itemsData = await itemsRes.json();
         const ownedData = await ownedRes.json();
 
-        setItems(itemsData || []);
+        const safeItems = Array.isArray(itemsData) ? itemsData : (itemsData?.data || []);
+        setItems(safeItems);
+
+        // setItems(itemsData || []);
+
+        // FIX: Pick a special item ONLY if we haven't picked one for this tab yet
+        if (itemsData && itemsData.length > 0) {
+          setSpecialItemIds((prev) => {
+            if (!prev[activeTab]) {
+              const randomIndex = Math.floor(Math.random() * itemsData.length);
+              return { ...prev, [activeTab]: itemsData[randomIndex].id };
+            }
+            return prev; // Keep the existing special item
+          });
+        }
 
         const ownedIds = Array.isArray(ownedData)
           ? ownedData.map((item: any) => {
@@ -88,15 +112,20 @@ export function ShopScreen({
     fetchItemsAndOwned();
   }, [activeTab, isLoaded, clerkId]);
 
+  // FIX: Update useMemo to use the saved specialItemIds
   const { specialItem, regularItems } = useMemo(() => {
-    if (items.length === 0) return { specialItem: null, regularItems: [] };
+   if (!Array.isArray(items) || items.length === 0) {
+      return { specialItem: null, regularItems: [] };
+    }
 
-    const randomIndex = Math.floor(Math.random() * items.length);
-    const special = items[randomIndex];
-    const regulars = items.filter((_, idx) => idx !== randomIndex);
+    const currentSpecialId = specialItemIds[activeTab];
+    const special =
+      items?.find((item) => item.id === currentSpecialId) || items[0];
+
+    const regulars = items?.filter((item) => item.id !== special?.id) || [];
 
     return { specialItem: special, regularItems: regulars };
-  }, [items]);
+  }, [items, activeTab, specialItemIds]);
 
   const handlePurchase = async (itemId: number) => {
     if (purchasingItemId) return;
@@ -157,37 +186,29 @@ export function ShopScreen({
       {/* Header */}
       <header className="bg-[#5C3D1F] border-b-4 border-[#2C2C2C] relative z-20 shadow-[0_4px_0_0_rgba(0,0,0,0.2)]">
         <div className="absolute top-0 left-0 right-0 h-2 bg-[repeating-linear-gradient(90deg,#FF4757_0px,#FF4757_20px,#FFF_20px,#FFF_40px)] opacity-80" />
-        <div className="px-4 pt-5 pb-4 max-w-md mx-auto">
+        <div className="px-3 pt-5 pb-4 max-w-md mx-auto">
           <div className="flex gap-2">
-            <div className="flex flex-1 gap-2">
-              {(["character", "pet"] as const).map((cat) => (
+            <div className="flex flex-1 gap-1.5">
+              {(["head", "body", "leg"] as const).map((cat) => (
                 <button
                   key={cat}
                   onClick={() => {
                     playClickSound();
                     setActiveTab(cat);
                   }}
-                  className={`flex-1 border-3 border-[#2C2C2C] rounded-xl py-2 flex items-center justify-center gap-1.5 transition-all duration-200 shadow-[2px_2px_0_0_rgba(0,0,0,0.3)]
+                  className={`flex-1 border-3 border-[#2C2C2C] rounded-xl py-2 flex flex-col items-center justify-center gap-1 transition-all duration-200 shadow-[2px_2px_0_0_rgba(0,0,0,0.3)]
                     ${
                       activeTab === cat
                         ? "bg-[#FFC800] text-[#2C2C2C] translate-y-0.5 shadow-none"
                         : "bg-[#8B6332] text-white hover:bg-[#9c6f37] active:translate-y-0.5 active:shadow-none"
                     }`}
                 >
-                  {cat === "character" ? (
-                    <img
-                      src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/human_shadow.png"
-                      alt="Character"
-                      className={`w-4 h-4 ${activeTab !== cat && "brightness-0 invert opacity-70"}`}
-                    />
-                  ) : (
-                    <img
-                      src="https://acsscfdgobrlzsvzefjs.supabase.co/storage/v1/object/public/items/screens/animal_footprint_shadow.png"
-                      alt="Pet"
-                      className={`w-4 h-4 ${activeTab !== cat && "brightness-0 invert opacity-70"}`}
-                    />
-                  )}
-                  <span className="font-['Press_Start_2P'] text-xs uppercase pt-0.5">
+                  <span
+                    className={`text-sm leading-none ${activeTab !== cat && "opacity-70 grayscale"}`}
+                  >
+                    {cat === "head" ? "🧢" : cat === "body" ? "👕" : "👖"}
+                  </span>
+                  <span className="font-['Press_Start_2P'] text-[8px] uppercase">
                     {cat}
                   </span>
                 </button>
@@ -199,7 +220,7 @@ export function ShopScreen({
                 playClickSound();
                 setViewMode((prev) => (prev === "shop" ? "inventory" : "shop"));
               }}
-              className={`w-14 flex flex-col items-center justify-center border-3 border-[#2C2C2C] rounded-xl transition-all duration-200 shadow-[2px_2px_0_0_rgba(0,0,0,0.3)]
+              className={`w-14 shrink-0 flex flex-col items-center justify-center border-3 border-[#2C2C2C] rounded-xl transition-all duration-200 shadow-[2px_2px_0_0_rgba(0,0,0,0.3)]
               ${
                 viewMode === "inventory"
                   ? "bg-[#00D66F] text-white translate-y-0.5 shadow-none"
@@ -215,7 +236,9 @@ export function ShopScreen({
                 alt={viewMode === "inventory" ? "Bag Open" : "Bag Closed"}
                 className="w-5 h-5 mb-0.5 object-contain drop-shadow-sm"
               />
-              <span className="text-xs">BAG</span>
+              <span className="font-['Press_Start_2P'] text-[7px] pt-1 uppercase">
+                BAG
+              </span>
             </button>
           </div>
         </div>
@@ -270,7 +293,7 @@ export function ShopScreen({
                           <p className="font-['Press_Start_2P'] text-sm text-[#2C2C2C] leading-snug mb-1">
                             {specialItem.name.toUpperCase()}
                           </p>
-                          <p className="font-['Nunito'] text-xs font-black text-[#FF4757] uppercase">
+                          <p className="font-['Press_Start_2P'] text-xs font-black text-[#FF4757] uppercase">
                             Rare Find!
                           </p>
                         </div>
@@ -300,7 +323,9 @@ export function ShopScreen({
                                   className="w-5 h-5 mb-0.5"
                                   strokeWidth={4}
                                 />
-                                <span className="text-sm">OWNED</span>
+                                <span className="text-[8px] font-['Press_Start_2P']">
+                                  OWNED
+                                </span>
                               </div>
                             ) : (
                               <div className="flex flex-col items-center">
@@ -310,7 +335,7 @@ export function ShopScreen({
                                   alt="Coin"
                                 />
                                 <span
-                                  className={`text-sm ${!canAfford ? "text-[#FF4757]" : "text-[#2C2C2C]"}`}
+                                  className={`text-[10px] font-['Press_Start_2P'] ${!canAfford ? "text-[#FF4757]" : "text-[#2C2C2C]"}`}
                                 >
                                   {specialItem.price}
                                 </span>
@@ -372,7 +397,7 @@ export function ShopScreen({
 
                       <div className="w-full text-center flex flex-col flex-1 justify-between">
                         <p
-                          className={`font-['Nunito'] text-xs font-black leading-tight line-clamp-2 mb-2 min-h-[2rem] 
+                          className={`font-['Press_Start_2P'] text-[10px] font-black leading-tight line-clamp-2 mb-2 min-h-[2rem] 
                           ${isOwned ? "text-[#00A854]" : "text-[#2C2C2C]"}`}
                         >
                           {item.name}
@@ -440,7 +465,6 @@ export function ShopScreen({
       {/* --- PURCHASE MODAL --- */}
       {modalState.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          {/* ... (โค้ด Modal แจ้งเตือนหลังกดซื้อ เหมือนเดิมเป๊ะ) ... */}
           <div className="bg-[#FFFDF5] border-4 border-[#2C2C2C] rounded-2xl p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] max-w-sm w-full text-center flex flex-col items-center animate-in zoom-in-95 duration-200 relative overflow-hidden">
             {modalState.type === "success" && (
               <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,#FFC800_0,#FFFDF5_100%)] animate-[pulse_2s_infinite]" />
@@ -485,7 +509,7 @@ export function ShopScreen({
                 : "PURCHASE FAILED"}
             </h2>
 
-            <p className="font-['Nunito'] text-[#2C2C2C] font-bold mb-8 text-sm leading-relaxed relative z-10">
+            <p className="font-['Press_Start_2P'] text-[#2C2C2C] font-bold mb-8 text-[10px] leading-relaxed relative z-10">
               {modalState.message}
             </p>
 

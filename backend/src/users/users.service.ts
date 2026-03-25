@@ -15,23 +15,28 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User with Clerk ID ${clerkId} not found`);
     }
-    console.log("fjnfjkanfjknsajkfnaksjnfak")
 
     // 2. Call our new upsert function to ensure all achievements are initialized
     await this.syncUserAchievements(user.id);
 
-    // 3. Now that we know all achievements exist, fetch and return the user 
+    // 3. Now that we know all achievements exist, fetch and return the user
     // with their settings and their fully updated achievements list!
     return this.prisma.user.findUnique({
       where: { clerkId },
-      include: { 
-        settings: true, 
+      include: {
+        settings: true,
         achievements: {
           include: {
-            achievement: true // This includes the master achievement info (name, description, etc.)
-          }
-        } 
-      }
+            achievement: true, // This includes the master achievement info
+          },
+        },
+        _count: {
+          select: {
+            collections: true,
+            achievements: true,
+          },
+        },
+      },
     });
   }
 
@@ -59,8 +64,8 @@ export class UsersService {
             currentProgress: 0,
             isCompleted: false,
           },
-        })
-      )
+        }),
+      ),
     );
   }
 
@@ -69,6 +74,12 @@ export class UsersService {
     email: string;
     username: string;
   }) {
+    // IMPORTANT: Check your database and replace these numbers 
+    // with the actual Item IDs of your starting gear!
+    const defaultHeadId = 6; 
+    const defaultBodyId = 10;
+    const defaultLegId = 14;
+
     return this.prisma.user.upsert({
       where: { clerkId: data.clerkId },
       update: {
@@ -81,6 +92,15 @@ export class UsersService {
         username: data.username,
         currentPoints: 0,
         totalPointsEarned: 0,
+        // This automatically creates and equips the starter items 
+        // the moment the user row is created in the database.
+        inventory: {
+          create: [
+            { itemId: defaultHeadId, isEquipped: true },
+            { itemId: defaultBodyId, isEquipped: true },
+            { itemId: defaultLegId, isEquipped: true },
+          ]
+        }
       },
     });
   }

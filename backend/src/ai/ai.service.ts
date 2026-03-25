@@ -3,6 +3,10 @@ import axios from 'axios';
 import FormData from 'form-data';
 import { PrismaService } from '../prisma/prisma.service';
 import { SupabaseService } from './supabase.service';
+import { QuestService } from '../quest/quest.service';
+import { AchievementService } from '../achievement/achievement.service';
+import { MissionType } from 'generated/prisma/enums'; // Adjust path if needed
+import { Achievement } from 'generated/prisma/client';
 
 const CONFIDENCE_THRESHOLD = 85;
 
@@ -15,15 +19,15 @@ export class AiService {
   constructor(
     private prisma: PrismaService,
     private supabaseService: SupabaseService,
+    private questService: QuestService,
+    private achievementService: AchievementService,
   ) {}
 
   async predict(file: Express.Multer.File, clerkId: string) {
     try {
-      // Send image to AI Model Service
       const aiData = await this.fetchAiPrediction(file);
       const normalizedName = aiData.class_name.replace(/_/g, ' ');
 
-      // Discovery animal in DB
       const animal = await this.prisma.animal.findFirst({
         where: { name: { equals: normalizedName, mode: 'insensitive' } },
       });
@@ -37,19 +41,124 @@ export class AiService {
         uploadedImageUrl,
       );
 
+      let unlockedAchievements: any[] = [];
+      const user = await this.prisma.user.findUnique({ where: { clerkId } });
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // If animal is not in DB, just return the unknown response
       if (!animal) {
         this.logger.warn(
           `Animal '${normalizedName}' found by AI but missing in DB.`,
         );
-        return this.formatUnknownResponse(normalizedName, aiData.confidence);
+        const response = this.formatUnknownResponse(
+          normalizedName,
+          aiData.confidence,
+        );
+        return { ...response, unlockedAchievements };
       }
 
-      return this.formatSuccessResponse(
+      // 🏆 ACHIEVEMENT: Eagle Eye (High AI Confidence)
+      if (aiData.confidence >= 98) {
+        const perfectScanAch = await this.achievementService.updateProgress(
+          user.id,
+          'PERFECT_SCAN',
+          1,
+        );
+        unlockedAchievements.push(...perfectScanAch);
+      }
+
+      // Only trigger these if the user hasn't scanned this animal before
+      if (isFirstDiscovery) {
+        // 🏆 ACHIEVEMENT: Scan Count
+        const scanAchievements = await this.achievementService.updateProgress(
+          user.id,
+          'SCAN_COUNT',
+          1,
+        );
+        unlockedAchievements.push(...scanAchievements);
+
+        // 🏆 ACHIEVEMENT: Points Earned (Pass the animal's point value instead of "1")
+        if (animal.pointsReward > 0) {
+          const pointsAchievements =
+            await this.achievementService.updateProgress(
+              user.id,
+              'POINTS_EARNED',
+              animal.pointsReward,
+            );
+          unlockedAchievements.push(...pointsAchievements);
+        }
+
+        // 🏆 ACHIEVEMENT: Rarity
+        if (animal.rarityLevel === 'RARE') {
+          const rareAch = await this.achievementService.updateProgress(
+            user.id,
+            'COLLECT_RARITY_RARE',
+            1,
+          );
+          unlockedAchievements.push(...rareAch);
+        } else if (animal.rarityLevel === 'LEGENDARY') {
+          const legAch = await this.achievementService.updateProgress(
+            user.id,
+            'COLLECT_RARITY_LEGENDARY',
+            1,
+          );
+          unlockedAchievements.push(...legAch);
+        }
+
+        // 🏆 ACHIEVEMENT: Habitat
+        if (animal.habitat) {
+          const habitat = animal.habitat.toLowerCase();
+          if (habitat.includes('rainforest')) {
+            const habAch = await this.achievementService.updateProgress(
+              user.id,
+              'COLLECT_HABITAT_RAINFOREST',
+              1,
+            );
+            unlockedAchievements.push(...habAch);
+          } else if (habitat.includes('desert')) {
+            const habAch = await this.achievementService.updateProgress(
+              user.id,
+              'COLLECT_HABITAT_DESERT',
+              1,
+            );
+            unlockedAchievements.push(...habAch);
+          } else if (habitat.includes('river')) {
+            const habAch = await this.achievementService.updateProgress(
+              user.id,
+              'COLLECT_HABITAT_RIVER',
+              1,
+            );
+            unlockedAchievements.push(...habAch);
+          } else if (habitat.includes('farm')) {
+            const habAch = await this.achievementService.updateProgress(
+              user.id,
+              'COLLECT_HABITAT_FARM',
+              1,
+            );
+            unlockedAchievements.push(...habAch);
+          }
+        }
+
+        // 🎯 Trigger specific Quest (Mission) progress
+        // (Assuming you updated this to 'SCAN_ANIMAL' in your Prisma schema previously)
+        await this.questService.handleActionTrigger(
+          user.id,
+          'SCAN_ANIMAL',
+          animal.id,
+        );
+      }
+
+      const response = this.formatSuccessResponse(
         animal,
         aiData.confidence,
         isFirstDiscovery,
       );
-    } catch (error) {
+
+      return { ...response, unlockedAchievements };
+    } catch (error: any) {
       this.logger.error('AI Service Error', error.message);
       throw new Error('Failed to connect to AI Model Service');
     }
@@ -70,7 +179,6 @@ export class AiService {
     return data;
   }
 
-  // ScanLog & Collection
   private async processUserScan(
     clerkId: string,
     animal: any,
@@ -82,7 +190,6 @@ export class AiService {
     const user = await this.prisma.user.findUnique({ where: { clerkId } });
     if (!user) return false;
 
-    // Save into ScanLog
     await this.prisma.scanLog.create({
       data: {
         userId: user.id,
@@ -93,7 +200,6 @@ export class AiService {
       },
     });
 
-    // If animal is found and confidence is above threshold, add to collection and reward points
     if (animal) {
       const existingCollection = await this.prisma.userCollection.findUnique({
         where: { userId_animalId: { userId: user.id, animalId: animal.id } },
@@ -116,13 +222,12 @@ export class AiService {
             },
           }),
         ]);
-        return true; // First discovery
+        return true;
       }
     }
-    return false; // Everfound or Unknown animal
+    return false;
   }
 
-  // จัดรูปแบบข้อมูลตอบกลับ (เจอสัตว์ใน DB)
   private formatSuccessResponse(
     animal: any,
     confidence: number,
@@ -143,7 +248,6 @@ export class AiService {
     };
   }
 
-  // จัดรูปแบบข้อมูลตอบกลับ (ไม่เจอสัตว์ใน DB)
   private formatUnknownResponse(className: string, confidence: number) {
     return {
       class_name: className,

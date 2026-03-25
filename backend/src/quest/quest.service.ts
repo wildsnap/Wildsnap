@@ -155,10 +155,6 @@ export class QuestService {
               totalPointsEarned: { increment: mission.rewardPoints },
             },
           });
-
-          console.log(
-            `User ${userId} completed mission ${mission.id} and earned ${mission.rewardPoints} points!`,
-          );
         }
       });
     }
@@ -166,7 +162,6 @@ export class QuestService {
 
   async getNextGuidedMission(userId: number) {
     const questSequence = [1, 2, 3, 4];
-    console.log("dkamdkaamldmlkm")
     // 1. Get all completed progress for THIS user
     const completedMissions = await this.prisma.userMission.findMany({
       where: {

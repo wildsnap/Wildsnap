@@ -172,7 +172,7 @@ export function CollectionScreen({
           ANIMAL DEX
         </h1>
         <div className="flex justify-center gap-2 mt-3">
-          <div className="font-['Nunito'] text-white font-bold">
+          <div className="font-['Press_Start_2P'] text-white font-bold">
             {progress.unlocked}/{progress.total} Found
           </div>
         </div>
@@ -252,12 +252,12 @@ export function CollectionScreen({
               </div>
 
               <div className="w-full text-center mt-auto bg-black/5 rounded-lg py-1 px-1 overflow-hidden">
-                <span className="font-['Nunito'] text-[10px] font-black text-[#2C2C2C]/60 block mb-0.5">
+                <span className="font-['Press_Start_2P'] text-[9px] font-black text-[#2C2C2C]/60 block mb-0.5">
                   #{animal.id.toString().padStart(3, "0")}
                 </span>
 
                 {animal.isUnlocked && (
-                  <span className="font-['Nunito'] text-[11px] font-bold text-[#5C3D1F] block leading-tight truncate">
+                  <span className="font-['Press_Start_2P'] text-[7px] font-bold text-[#5C3D1F] block leading-tight truncate">
                     {animal.name}
                   </span>
                 )}
