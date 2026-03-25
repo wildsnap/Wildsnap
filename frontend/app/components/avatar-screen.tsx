@@ -80,7 +80,7 @@ export function AvatarScreen({
               {/* Glow Effect */}
               <div className="absolute -inset-8 bg-gradient-to-b from-[#FFC800]/40 to-transparent rounded-full blur-xl z-0" />
 
-              <div className="relative z-10 w-15 h-20 flex flex-col items-center justify-center">
+              <div className="relative z-10 w-15 h-50 flex flex-col items-center justify-center">
                 {/* Fallback box if nothing is equipped */}
                 {!equippedHead && !equippedBody && !equippedLeg && (
                   <div className="w-16 h-16 bg-black/20 border-4 border-dashed border-white/40 rounded-xl flex items-center justify-center">
@@ -99,14 +99,14 @@ export function AvatarScreen({
                 {equippedBody && (
                   <img
                     src={equippedBody}
-                    className="h-[30%] w-auto object-contain z-20 drop-shadow-md"
+                    className="h-[30%] w-auto object-contain z-20 drop-shadow-md -mt-2"
                     alt="Body"
                   />
                 )}
                 {equippedLeg && (
                   <img
                     src={equippedLeg}
-                    className="h-[40%] w-auto object-contain z-10 -mt-1.5 drop-shadow-md"
+                    className="h-[40%] w-auto object-contain z-10 -mt-4 drop-shadow-md"
                     alt="Legs"
                   />
                 )}
