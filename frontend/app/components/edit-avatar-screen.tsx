@@ -7,7 +7,6 @@ import { useSettings } from "../contexts/AudioContext";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3100";
 
-// Import the type we defined in page.tsx
 import type { InventoryItem } from "../page";
 
 interface EditAvatarScreenProps {
@@ -27,21 +26,18 @@ export function EditAvatarScreen({
   const [activeTab, setActiveTab] = useState<"HEAD" | "BODY" | "LEG">("HEAD");
   const [isSaving, setIsSaving] = useState(false);
 
-  // Local state to hold the "Preview" selections
   const [selectedItems, setSelectedItems] = useState<{
     HEAD: number | null;
     BODY: number | null;
     LEG: number | null;
   }>({ HEAD: null, BODY: null, LEG: null });
 
-  // Store what they came in with so we only save the differences
   const [initialItems, setInitialItems] = useState<{
     HEAD: number | null;
     BODY: number | null;
     LEG: number | null;
   }>({ HEAD: null, BODY: null, LEG: null });
 
-  // Initialize the preview from the passed-in inventory
   useEffect(() => {
     if (!inventory || inventory.length === 0) return;
 
@@ -57,16 +53,13 @@ export function EditAvatarScreen({
     setInitialItems(initialConfig);
   }, [inventory]);
 
-  // Handle clicking an item in the grid (Preview only)
   const handleSelect = (inventoryId: number) => {
     playClickSound();
 
     setSelectedItems((prev) => {
-      // Toggle off if they click the already selected item
       if (prev[activeTab] === inventoryId) {
         return { ...prev, [activeTab]: null };
       }
-      // Otherwise, set the new selection
       return { ...prev, [activeTab]: inventoryId };
     });
   };
@@ -74,7 +67,6 @@ export function EditAvatarScreen({
   const handleSave = async () => {
     playClickSound();
 
-    // Safety check: Ensure Auth is loaded and all 3 parts are selected
     if (
       !clerkId ||
       !selectedItems.HEAD ||
@@ -89,7 +81,6 @@ export function EditAvatarScreen({
     try {
       const itemsToEquip: number[] = [];
 
-      // Safely push only if they exist and have changed
       if (selectedItems.HEAD && selectedItems.HEAD !== initialItems.HEAD) {
         itemsToEquip.push(selectedItems.HEAD);
       }
@@ -105,12 +96,11 @@ export function EditAvatarScreen({
           method: "PATCH",
           headers: {
             "x-user-id": clerkId as string,
-            "Content-Type": "application/json", // Good practice
+            "Content-Type": "application/json",
           },
         });
 
         if (!res.ok) {
-          // Grab the actual error from the backend so you can read it in your console
           const errorText = await res.text();
           throw new Error(`Failed to equip item ${invId}: ${errorText}`);
         }
@@ -124,12 +114,10 @@ export function EditAvatarScreen({
         "Failed to save avatar. Please check your connection and try again.",
       );
     } finally {
-      // ALWAYS unlock the button, whether it succeeds or fails
       setIsSaving(false);
     }
   };
 
-  // Find the image URLs for the preview canvas based on LOCAL selection
   const previewHead = inventory.find((i) => i.id === selectedItems.HEAD)?.item
     ?.imageUrl;
   const previewBody = inventory.find((i) => i.id === selectedItems.BODY)?.item
@@ -139,7 +127,6 @@ export function EditAvatarScreen({
 
   const filteredItems = inventory.filter((i) => i.item.type === activeTab);
 
-  // Validation rules for the save button
   const isComplete = !!(
     selectedItems.HEAD &&
     selectedItems.BODY &&
@@ -152,27 +139,24 @@ export function EditAvatarScreen({
 
   return (
     <div className="flex flex-col h-full bg-[#8B9BB4] relative overflow-hidden">
-      {/* Header */}
-      <div className="bg-[#E2D8C3] border-b-4 border-[#2C2C2C] px-4 py-4 sticky top-0 z-20 shadow-[0_4px_0_0_rgba(0,0,0,0.2)] flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="bg-[#E2D8C3] border-b-4 border-[#2C2C2C] px-3 sm:px-4 py-3 sm:py-4 shrink-0 z-20 shadow-[0_4px_0_0_rgba(0,0,0,0.2)] flex items-center justify-between">
+        <div className="flex items-center gap-3 sm:gap-4">
           <button
             onClick={() => {
               playClickSound();
               onBack();
             }}
-            className="w-12 h-12 bg-[#FF4757] border-4 border-[#2C2C2C] flex items-center justify-center shadow-[4px_4px_0_0_#2C2C2C] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
+            className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FF4757] border-4 border-[#2C2C2C] flex items-center justify-center shadow-[4px_4px_0_0_#2C2C2C] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
           >
-            <ChevronLeft className="w-8 h-8 text-white" strokeWidth={4} />
+            <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8 text-white" strokeWidth={4} />
           </button>
-          <h1 className="font-['Press_Start_2P'] text-[16px] text-[#2C2C2C] mt-1">
+          <h1 className="font-['Press_Start_2P'] text-sm sm:text-[16px] text-[#2C2C2C] mt-1">
             WARDROBE
           </h1>
         </div>
       </div>
 
-      {/* Character Preview Canvas */}
-      <div className="bg-[#F5F8F0] h-72 border-b-4 border-[#2C2C2C] flex flex-col items-center justify-center relative shadow-inner overflow-hidden">
-        {/* Retro Background Grid */}
+      <div className="bg-[#F5F8F0] h-[35vh] sm:h-72 shrink-0 border-b-4 border-[#2C2C2C] flex flex-col items-center justify-center relative shadow-inner overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.05]"
           style={{
@@ -182,39 +166,40 @@ export function EditAvatarScreen({
           }}
         />
 
-        {/* Changed wrapper: removed fixed w-32 and overflow-auto, made it full height of parent */}
-        <div className="relative h-full w-full z-10 flex flex-col items-center justify-center pt-2">
-          {/* Head (Top) -> Set height to a percentage to force it to fit */}
+        <div className="relative h-full w-full z-10 flex flex-col items-center justify-center py-4">
+          {!previewHead && !previewBody && !previewLeg && (
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-black/10 border-4 border-dashed border-[#2C2C2C]/30 rounded-xl flex items-center justify-center">
+              <span className="text-2xl sm:text-3xl opacity-50">👤</span>
+            </div>
+          )}
+
           {previewHead && (
             <img
               src={previewHead}
-              className="h-[20%] w-auto object-contain z-30"
+              className="h-[35%] w-auto object-contain z-30 drop-shadow-md"
               alt="Head"
             />
           )}
 
-          {/* Body (Middle) -> -mt-2 pulls it up to connect to the head */}
           {previewBody && (
             <img
               src={previewBody}
-              className="h-[20%] w-auto object-contain z-20"
+              className="h-[35%] w-auto object-contain z-20 drop-shadow-md -mt-1 sm:-mt-2"
               alt="Body"
             />
           )}
 
-          {/* Legs (Bottom) -> -mt-4 pulls it up to connect to the body */}
           {previewLeg && (
             <img
               src={previewLeg}
-              className="h-[25%] w-auto object-contain z-10 -mt-2"
+              className="h-[40%] w-auto object-contain z-10 -mt-2 sm:-mt-4 drop-shadow-md"
               alt="Legs"
             />
           )}
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex bg-[#E2D8C3] border-b-4 border-[#2C2C2C]">
+      <div className="flex bg-[#E2D8C3] border-b-4 border-[#2C2C2C] shrink-0">
         {(["HEAD", "BODY", "LEG"] as const).map((tab) => (
           <button
             key={tab}
@@ -222,7 +207,7 @@ export function EditAvatarScreen({
               playClickSound();
               setActiveTab(tab);
             }}
-            className={`flex-1 py-3 font-['Press_Start_2P'] text-[10px] transition-colors border-r-4 border-[#2C2C2C] last:border-r-0 ${
+            className={`flex-1 py-2.5 sm:py-3 font-['Press_Start_2P'] text-[8px] sm:text-[10px] transition-colors border-r-4 border-[#2C2C2C] last:border-r-0 ${
               activeTab === tab
                 ? "bg-[#FFC800] text-[#2C2C2C] shadow-[inset_0_-4px_0_rgba(0,0,0,0.2)]"
                 : "bg-transparent text-[#754F26] hover:bg-white/20"
@@ -233,9 +218,8 @@ export function EditAvatarScreen({
         ))}
       </div>
 
-      {/* Inventory Grid */}
-      <div className="flex-1 overflow-y-auto p-4 pb-32">
-        <div className="grid grid-cols-3 gap-3">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 pb-[120px] sm:pb-[140px]">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           {filteredItems.map((inv) => {
             const isSelected = selectedItems[activeTab] === inv.id;
 
@@ -243,15 +227,15 @@ export function EditAvatarScreen({
               <button
                 key={inv.id}
                 onClick={() => handleSelect(inv.id)}
-                className={`relative aspect-square border-4 flex flex-col items-center justify-center p-2 transition-all ${
+                className={`relative aspect-square border-4 flex flex-col items-center justify-center p-1 sm:p-2 transition-all ${
                   isSelected
-                    ? "border-[#00D66F] bg-[#E8F5E9] shadow-[inset_0_0_15px_rgba(0,214,111,0.3)] scale-95"
-                    : "border-[#2C2C2C] bg-white shadow-[4px_4px_0_0_#2C2C2C] active:translate-x-1 active:translate-y-1 active:shadow-none"
+                    ? "border-[#00D66F] bg-[#E8F5E9] shadow-[inset_0_0_10px_rgba(0,214,111,0.3)] scale-95"
+                    : "border-[#2C2C2C] bg-white shadow-[2px_2px_0_0_#2C2C2C] sm:shadow-[4px_4px_0_0_#2C2C2C] active:translate-x-1 active:translate-y-1 active:shadow-none"
                 }`}
               >
                 {isSelected && (
                   <div className="absolute top-1 right-1 bg-[#00D66F] border-2 border-[#2C2C2C] rounded-full p-0.5 z-10">
-                    <Check className="w-3 h-3 text-white" strokeWidth={4} />
+                    <Check className="w-2 h-2 sm:w-3 sm:h-3 text-white" strokeWidth={4} />
                   </div>
                 )}
 
@@ -260,7 +244,7 @@ export function EditAvatarScreen({
                     <img
                       src={inv.item.imageUrl}
                       alt={inv.item.name}
-                      className="w-[80%] h-[80%] object-contain drop-shadow-md"
+                      className="w-[80%] h-[80%] object-contain drop-shadow-sm sm:drop-shadow-md"
                     />
                   ) : (
                     <div className="w-full h-full bg-gray-200" />
@@ -271,8 +255,8 @@ export function EditAvatarScreen({
           })}
 
           {filteredItems.length === 0 && (
-            <div className="col-span-3 text-center mt-10 opacity-70">
-              <p className="font-['Press_Start_2P'] text-[10px] text-white leading-loose drop-shadow-sm">
+            <div className="col-span-3 text-center mt-8 sm:mt-10 opacity-70">
+              <p className="font-['Press_Start_2P'] text-[8px] sm:text-[10px] text-white leading-loose drop-shadow-sm">
                 NO {activeTab} ITEMS YET.
                 <br />
                 VISIT THE SHOP!
@@ -282,19 +266,18 @@ export function EditAvatarScreen({
         </div>
       </div>
 
-      {/* Floating Save Button */}
-      <div className="absolute bottom-28 left-4 right-4 z-[100]">
+      <div className="relative bottom-20 sm:bottom-24 z-100 mx-10">
         <button
           disabled={!isComplete || !hasChanges || isSaving}
           onClick={handleSave}
-          className={`w-full py-4 border-4 rounded-xl flex items-center justify-center gap-3 transition-all ${
+          className={`w-full py-3.5 sm:py-4 border-4 rounded-xl flex items-center justify-center gap-2 sm:gap-3 transition-all ${
             isComplete && hasChanges && !isSaving
               ? "bg-[#00D66F] border-[#2C2C2C] text-white shadow-[4px_4px_0_0_#2C2C2C] active:shadow-none active:translate-x-1 active:translate-y-1"
               : "bg-[#A9A9A9] border-[#555] text-[#555] cursor-not-allowed"
           }`}
         >
-          <Save className="w-6 h-6" strokeWidth={3} />
-          <span className="font-['Press_Start_2P'] text-[12px] pt-1">
+          <Save className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={3} />
+          <span className="font-['Press_Start_2P'] text-[10px] sm:text-[12px] pt-1">
             {isSaving ? "SAVING..." : "SAVE AVATAR"}
           </span>
         </button>
