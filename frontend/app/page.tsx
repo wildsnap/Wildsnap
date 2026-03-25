@@ -1,6 +1,8 @@
 "use client";
+
 import { useState, useEffect, useCallback } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useUser, SignInButton } from "@clerk/nextjs";
+import { Ghost } from "lucide-react";
 import { BottomNavigation } from "./components/bottom-navigation";
 import { HomeScreen } from "./components/home-screen";
 import { CollectionScreen } from "./components/collection-screen";
@@ -16,6 +18,7 @@ import {
   AchievementsScreen,
   AchievementData,
 } from "./components/achievements-screen";
+import appLogo from "./images/logo.png";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3100";
 
@@ -301,14 +304,66 @@ export default function Home() {
   const displayUsername =
     dbUser?.username || clerkUser?.firstName || "Explorer";
 
-  if (!isClerkLoaded || isLoadingData) {
+  // ---------------------------------------------------------
+  // 1. Loading State (Clerk is still checking session)
+  // ---------------------------------------------------------
+  if (!isClerkLoaded) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#F5F8F0]">
-        Loading Profile...
+      <div className="flex h-[calc(100vh-64px)] max-w-md mx-auto items-center justify-center bg-[#F5F8F0] font-['Press_Start_2P'] text-[10px] text-[#754F26]">
+        LOADING...
       </div>
     );
   }
 
+  // ---------------------------------------------------------
+  // 2. Unauthenticated State (User is NOT logged in)
+  // ---------------------------------------------------------
+  if (!clerkUser) {
+    return (
+      <div className="flex h-screen max-w-md mx-auto items-center justify-center bg-[#F5F8F0] p-6 text-center font-['Nunito'] relative">
+        <div className="absolute inset-0 opacity-[0.03] bg-[repeating-linear-gradient(45deg,#000,#000_2px,transparent_2px,transparent_6px)] z-0 pointer-events-none" />
+        
+        <div className="bg-white border-4 border-[#2C2C2C] p-8 rounded-2xl shadow-[8px_8px_0_0_#2C2C2C] w-full flex flex-col items-center relative z-10 animate-[fadeIn_0.5s_ease-out]">
+          <div className="w-20 h-20 bg-[#FFC800] border-4 border-[#2C2C2C] rounded-full flex items-center justify-center mb-6 shadow-inner">
+          <img 
+              src={appLogo.src} 
+              alt="Safari Dex Logo" 
+              className="w-48 h-48 object-contain drop-shadow-md" 
+            />
+          </div>
+          
+          <h1 className="font-['Press_Start_2P'] text-[16px] mb-4 text-[#2C2C2C] leading-loose">
+            WELCOME TO<br />Wildsnap
+          </h1>
+          
+          <p className="font-['Nunito'] font-bold text-[#754F26] mb-8 text-sm">
+            Please sign in to save your progress, earn coins, and customize your avatar!
+          </p>
+
+          <SignInButton mode="modal">
+            <button className="w-full bg-[#00D66F] border-4 border-[#2C2C2C] rounded-xl py-4 font-['Press_Start_2P'] text-xs text-white shadow-[4px_4px_0_0_#2C2C2C] active:translate-y-1 active:translate-x-1 active:shadow-none transition-all flex items-center justify-center gap-2">
+              START GAME
+            </button>
+          </SignInButton>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------------------------------------------------------
+  // 3. Data Fetching State (Logged in, but loading DB info)
+  // ---------------------------------------------------------
+  if (isLoadingData) {
+    return (
+      <div className="flex h-[calc(100vh-64px)] max-w-md mx-auto items-center justify-center bg-[#F5F8F0] font-['Press_Start_2P'] text-[10px] text-[#754F26] animate-pulse">
+        LOADING PROFILE...
+      </div>
+    );
+  }
+
+  // ---------------------------------------------------------
+  // 4. Main Authenticated App Layout
+  // ---------------------------------------------------------
   return (
     <div className="relative w-full h-[calc(100vh-64px)] max-w-md mx-auto bg-[#F5F8F0] overflow-hidden font-['Nunito']">
       <AchievementToast

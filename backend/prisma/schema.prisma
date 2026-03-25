@@ -59,7 +59,8 @@ model UserCollection {
   isFirstDiscovery Boolean  @default(true)
   customName       String?
   animal           Animal   @relation(fields: [animalId], references: [id])
-  user             User     @relation(fields: [userId], references: [id])
+  // Added onDelete: Cascade here
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, animalId])
 }
@@ -73,7 +74,8 @@ model ScanLog {
   confidenceScore   Float?
   createdAt         DateTime @default(now())
   animal            Animal?  @relation(fields: [predictedAnimalId], references: [id])
-  user              User     @relation(fields: [userId], references: [id])
+  // Added onDelete: Cascade here
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Mission {
@@ -101,7 +103,8 @@ model UserMission {
   isCompleted     Boolean   @default(false)
   completedAt     DateTime?
   mission         Mission   @relation(fields: [missionId], references: [id])
-  user            User      @relation(fields: [userId], references: [id])
+  // Added onDelete: Cascade here
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, missionId])
 }
@@ -124,7 +127,8 @@ model UserAchievement {
   isCompleted     Boolean     @default(false)
   completedAt     DateTime?
   achievement     Achievement @relation(fields: [achievementId], references: [id])
-  user            User        @relation(fields: [userId], references: [id])
+  // Added onDelete: Cascade here
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, achievementId])
 }
@@ -146,7 +150,8 @@ model UserInventory {
   purchasedAt DateTime @default(now())
   isEquipped  Boolean  @default(false)
   item        Item     @relation(fields: [itemId], references: [id])
-  user        User     @relation(fields: [userId], references: [id])
+  // Added onDelete: Cascade here
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model UserSettings {

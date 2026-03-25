@@ -74,17 +74,26 @@ export function ShopScreen({
         const itemsData = await itemsRes.json();
         const ownedData = await ownedRes.json();
 
-        const safeItems = Array.isArray(itemsData) ? itemsData : (itemsData?.data || []);
-        setItems(safeItems);
+        // 1. ADD THIS: Define the IDs you want to hide from the shop
+        const HIDDEN_ITEM_IDS = [6, 10, 14];
 
-        // setItems(itemsData || []);
+        // 2. Safely get the items array
+        const rawItems = Array.isArray(itemsData) ? itemsData : (itemsData?.data || []);
 
-        // FIX: Pick a special item ONLY if we haven't picked one for this tab yet
-        if (itemsData && itemsData.length > 0) {
+        // 3. FILTER the items to remove the hidden ones BEFORE saving to state
+        const visibleItems = rawItems.filter(
+          (item: ShopItem) => !HIDDEN_ITEM_IDS.includes(item.id)
+        );
+
+        // 4. Set the filtered items to your state
+        setItems(visibleItems);
+
+        // 5. FIX: Use `visibleItems` here so it doesn't accidentally pick a hidden item as the special offer
+        if (visibleItems.length > 0) {
           setSpecialItemIds((prev) => {
             if (!prev[activeTab]) {
-              const randomIndex = Math.floor(Math.random() * itemsData.length);
-              return { ...prev, [activeTab]: itemsData[randomIndex].id };
+              const randomIndex = Math.floor(Math.random() * visibleItems.length);
+              return { ...prev, [activeTab]: visibleItems[randomIndex].id };
             }
             return prev; // Keep the existing special item
           });
