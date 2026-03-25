@@ -184,7 +184,7 @@ export function EditAvatarScreen({
           {previewBody && (
             <img
               src={previewBody}
-              className="h-[35%] w-auto object-contain z-20 drop-shadow-md -mt-1 sm:-mt-2"
+              className="h-[35%] w-auto object-contain z-20 drop-shadow-md"
               alt="Body"
             />
           )}
@@ -192,7 +192,7 @@ export function EditAvatarScreen({
           {previewLeg && (
             <img
               src={previewLeg}
-              className="h-[40%] w-auto object-contain z-10 -mt-2 sm:-mt-4 drop-shadow-md"
+              className="h-[40%] w-auto object-contain z-10 -mt-3 sm:-mt-3 drop-shadow-md"
               alt="Legs"
             />
           )}

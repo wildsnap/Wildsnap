@@ -98,14 +98,14 @@ export function AvatarScreen({
                 {equippedBody && (
                   <img
                     src={equippedBody}
-                    className="h-[35%] w-auto object-contain z-20 drop-shadow-md -mt-1 sm:-mt-2"
+                    className="h-[35%] w-auto object-contain z-20 drop-shadow-md"
                     alt="Body"
                   />
                 )}
                 {equippedLeg && (
                   <img
                     src={equippedLeg}
-                    className="h-[40%] w-auto object-contain z-10 -mt-2 sm:-mt-4 drop-shadow-md"
+                    className="h-[40%] w-auto object-contain z-10 -mt-1 sm:-mt-2 drop-shadow-md"
                     alt="Legs"
                   />
                 )}
