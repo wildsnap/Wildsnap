@@ -161,7 +161,7 @@ export class QuestService {
   }
 
   async getNextGuidedMission(userId: number) {
-    const questSequence = [1, 2, 3, 4];
+    const questSequence = [1, 2, 9, 3, 4];
     // 1. Get all completed progress for THIS user
     const completedMissions = await this.prisma.userMission.findMany({
       where: {
